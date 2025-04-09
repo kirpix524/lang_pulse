@@ -1,4 +1,26 @@
 {
   "users_db_file" : "data/users.txt",
-  "logs_directory" : "data/logs/"
+  "logs_directory" : "data/logs/",
+  "screen_settings" :
+  {
+    "width" : 1280,
+    "height" : 720
+  },
+  "login_screen_settings" :
+  {
+    "choose_user_spinner_text" : "Выберите пользователя",
+    "login_button_text" : "Войти",
+    "register_button_text" : "Зарегистрироваться"
+  },
+  "register_screen_settings" :
+  {
+    "user_name_input_hint_text" : "Введите имя пользователя",
+    "submit_button_text" : "Создать и войти"
+  },
+  "main_menu_screen_settings" :
+  {
+    "main_menu_label_text" : "Главное меню",
+    "show_dictionary_button_text" : "Показать словарь",
+    "show_training_button_text" : "Показать тренировки"
+  }
 }
