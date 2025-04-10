@@ -18,3 +18,6 @@ class UserRepository:
 
     def user_exists(self, username: str) -> bool:
         return any(user.username == username for user in self.users)
+
+    def get_user_by_name(self, username: str) -> User:
+        return next((user for user in self.users if user.username == username), None)
