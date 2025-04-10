@@ -43,18 +43,26 @@ class RegisterScreen(Screen):
 
 # Главное меню
 class MainMenuScreen(Screen):
+    current_user_name = StringProperty('')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def on_pre_enter(self):
+        self.current_user_name = self.manager.current_user.username or ''
+
     def show_dictionary(self):
-        self.manager.current = 'dictionary'
         self.manager.get_screen('dictionary').set_user(self.manager.current_user)
+        self.manager.current = 'dictionary'
 
 # Экран словаря
 class DictionaryScreen(Screen):
+    current_user_name = StringProperty('')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.__user = None
+
+    def on_pre_enter(self):
+        self.current_user_name = self.get_user_name()
 
     def set_user(self, user: User):
         self.__user = user

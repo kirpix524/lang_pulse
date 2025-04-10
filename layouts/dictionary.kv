@@ -5,6 +5,20 @@
         Rectangle:
             pos: self.pos
             size: self.size
+    AnchorLayout:
+        anchor_x: 'left'
+        anchor_y: 'top'
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: None, None
+            size: 200, 50
+
+            Label:
+                text: 'Пользователь: ' + root.current_user_name
+                color: 0, 0, 0, 1
+                size_hint_y: None
+                height: 40
+
     BoxLayout:
         orientation: 'vertical'
         padding: 20
