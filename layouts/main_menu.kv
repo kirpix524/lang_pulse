@@ -1,4 +1,11 @@
 <MainMenuScreen>:
+    canvas.before:
+        Color:
+            rgba: 0.7, 0.86, 0.71, 1  # Цвет фона (светло-серый)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     AnchorLayout:
         anchor_x: 'center'
         anchor_y: 'center'
@@ -6,20 +13,23 @@
         BoxLayout:
             orientation: 'vertical'
             size_hint: None, None
-            size: 250, 200
+            size: 300, 200
             spacing: 10
 
             Label:
                 text: 'Главное меню'
+                color: 0, 0, 0, 1
                 size_hint_y: None
                 height: 40
 
             Button:
                 text: 'Показать словарь'
+                color: 0, 0, 0, 1
                 size_hint_y: None
                 height: 40
 
             Button:
                 text: 'Показать тренировки'
+                color: 0, 0, 0, 1
                 size_hint_y: None
                 height: 40

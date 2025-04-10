@@ -1,6 +1,7 @@
 {
   "users_db_file" : "data/users.txt",
   "logs_directory" : "data/logs/",
+  "layouts_directory" : "layouts/",
   "screen_settings" :
   {
     "width" : 1280,

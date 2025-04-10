@@ -1,0 +1,39 @@
+<LoginScreen>:
+    canvas.before:
+        Color:
+            rgba: 0.7, 0.86, 0.71, 1  # Цвет фона (светло-серый)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'center'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: None, None
+            size: 300, 200
+            spacing: 10
+
+            Spinner:
+                id: spinner
+                text: 'Выберите пользователя'
+                color: 0, 0, 0, 1
+                size_hint_y: None
+                height: 40
+
+            Button:
+                id: login_button
+                text: 'Войти'
+                color: 0, 0, 0, 1
+                size_hint_y: None
+                height: 40
+                on_press: root.login()
+
+            Button:
+                id: register_button
+                text: 'Зарегистрироваться'
+                color: 0, 0, 0, 1
+                size_hint_y: None
+                height: 40
+                on_press: root.goto_register()
