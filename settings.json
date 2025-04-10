@@ -1,5 +1,7 @@
 {
   "users_db_file" : "data/users.txt",
+  "languages_db_file" : "data/languages.txt",
+  "words_db_file" : "data/words.txt",
   "logs_directory" : "data/logs/",
   "layouts_directory" : "layouts/",
   "screen_settings" :
