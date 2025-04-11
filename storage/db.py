@@ -1,6 +1,6 @@
 from models.language import Language
 from models.user import User
-from models.word import Word
+from models.dictionary import Word, Dictionary
 
 import storage.config as config
 
@@ -14,7 +14,7 @@ class DataBase:
     def save_language_list(self, language_list: list[Language]) -> None:
         pass
 
-    def save_word_list(self, word: Word, user: User) -> None:
+    def save_dictionary(self, dictionary: Dictionary) -> None:
         pass
 
     def load_user_list(self) -> list[User]:
@@ -23,14 +23,15 @@ class DataBase:
     def load_language_list(self) -> list[Language]:
         pass
 
-    def load_word_list(self, user:User) -> list[Word]:
+    def load_dictionary(self, dictionary:Dictionary) -> list[Word]:
         pass
 
 
 class DBFile(DataBase):
-    def __init__(self, file_names):
+    def __init__(self, file_names, dictionary_data):
         super().__init__()
         self.file_names = file_names
+        self.dictionary_data = dictionary_data
 
     def load_user_list(self) -> list[User]:
         users: list[User] = []
@@ -74,5 +75,34 @@ class DBFile(DataBase):
             for language in language_list:
                 file.write(f"{language.lang_id}|{language.lang_code}|{language.lang_name}\n")
 
-db = DBFile(config.FILE_NAMES)
+    def __get_dictionary_file_name(self, user: User, language: Language) -> str:
+        return f"{self.dictionary_data['FILE_NAME_PREFIX']}_{user.username}_{language.lang_code}.txt"
+
+    def load_dictionary(self, dictionary:Dictionary) -> list[Word]:
+        user = dictionary.get_user()
+        language = dictionary.get_language()
+        dictionary_file_name = self.__get_dictionary_file_name(user, language)
+        words: list[Word] = []
+        try:
+            with open(dictionary_file_name, "r", encoding="utf-8") as file:
+                for line in file:
+                    line = line.strip()
+                    if not line or "|" not in line:
+                        continue
+                    word, translation, transcription = line.split("|", 3)
+                    words.append(Word(word.strip(), translation.strip(), transcription.strip()))
+        except FileNotFoundError:
+            print(f"Файл {self.file_names['DICTIONARY']} не найден. Будет создан при сохранении.")
+
+        return words
+
+    def save_dictionary(self, dictionary: Dictionary) -> None:
+        user = dictionary.get_user()
+        language = dictionary.get_language()
+        dictionary_file_name = self.__get_dictionary_file_name(user, language)
+        with open(dictionary_file_name, "w", encoding="utf-8") as file:
+            for word in dictionary.get_words():
+                file.write(f"{word.word}|{word.translation}|{word.transcription}\n")
+
+db = DBFile(config.FILE_NAMES, config.DICTIONARY_DATA)
 

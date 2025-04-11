@@ -4,6 +4,7 @@ from kivy.properties import StringProperty
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 import storage.config as config
+from models.dictionary import Dictionary, Word
 from storage.user_repo import UserRepository
 from models.user import User
 from models.app import AppState
@@ -27,6 +28,45 @@ def show_error(message: str):
                   size=(300, 200),
                   auto_dismiss=False)
     close_button.bind(on_press=popup.dismiss)
+    popup.open()
+
+def open_add_word_popup(dictionary:Dictionary):
+    from kivy.uix.popup import Popup
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.textinput import TextInput
+    from kivy.uix.button import Button
+    from kivy.uix.label import Label
+    layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
+
+    word_input = TextInput(hint_text="Слово", multiline=False)
+    transcription_input = TextInput(hint_text="Транскрипция", multiline=False)
+    translation_input = TextInput(hint_text="Перевод", multiline=False)
+
+    def on_add(instance):
+        term = word_input.text.strip()
+        transcription = transcription_input.text.strip()
+        translation = translation_input.text.strip()
+
+        if term and translation:
+            dictionary.add_word(Word(term, translation, transcription))
+            popup.dismiss()
+
+    add_button = Button(text="Добавить", size_hint_y=None, height=40)
+    add_button.bind(on_press=on_add)
+
+    layout.add_widget(Label(text="Добавление слова", size_hint_y=None, height=30))
+    layout.add_widget(word_input)
+    layout.add_widget(transcription_input)
+    layout.add_widget(translation_input)
+    layout.add_widget(add_button)
+
+    popup = Popup(
+        title="Новое слово",
+        content=layout,
+        size_hint=(None, None),
+        size=(400, 400),
+        auto_dismiss=True
+    )
     popup.open()
 
 

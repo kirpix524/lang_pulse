@@ -2,8 +2,10 @@
   "users_db_file" : "data/users.txt",
   "languages_db_file" : "data/languages.txt",
   "words_db_file" : "data/words.txt",
+  "dictionaries_directory" : "data/dictionaries/",
   "logs_directory" : "data/logs/",
   "layouts_directory" : "layouts/",
+  "dictionary_file_prefix" : "dictionary",
   "screen_settings" :
   {
     "width" : 1280,

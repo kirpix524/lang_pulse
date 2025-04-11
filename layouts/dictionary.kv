@@ -2,20 +2,49 @@
     ScreenBackground
     UserInfoPanel
 
-    BoxLayout:
-        orientation: 'vertical'
+    AnchorLayout:
+        anchor_x: 'right'
+        anchor_y: 'top'
         padding: 20
-        spacing: 10
+
+        Button:
+            text: 'Добавить слово'
+            size_hint: None, None
+            size: 160, 40
+            on_press: root.add_word()
+
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
+        padding: 20
 
         Label:
             text: 'Словарь'
             font_size: '24sp'
             color: 0, 0, 0, 1
+            size_hint_y: None
+            height: 40
 
-        # Здесь можно будет добавить список слов, кнопки и т.д.
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: 1.0, 0.8
+        padding: 20
+        spacing: 10
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+        ScrollView:
+            size_hint: 1, 1
+
+            GridLayout:
+                id: words_container
+                cols: 1
+                spacing: 10
+                size_hint_y: None
+                padding: 5
+                height: self.minimum_height
 
         Button:
             text: 'Назад'
-            size_hint_y: None
-            height: 40
+            size_hint: None, None
+            size: 160, 40
             on_press: root.goto_main_menu()
