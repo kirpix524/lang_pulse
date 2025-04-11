@@ -1,23 +1,6 @@
 <DictionaryScreen>:
-    canvas.before:
-        Color:
-            rgba: 0.7, 0.86, 0.71, 1  # Цвет фона (светло-серый)
-        Rectangle:
-            pos: self.pos
-            size: self.size
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'top'
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint: None, None
-            size: 200, 50
-
-            Label:
-                text: 'Пользователь: ' + root.current_user_name
-                color: 0, 0, 0, 1
-                size_hint_y: None
-                height: 40
+    ScreenBackground
+    UserInfoPanel
 
     BoxLayout:
         orientation: 'vertical'
@@ -35,4 +18,4 @@
             text: 'Назад'
             size_hint_y: None
             height: 40
-            on_press: app.root.current = 'main_menu'
+            on_press: root.goto_main_menu()

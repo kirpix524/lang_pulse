@@ -1,10 +1,12 @@
 from models.user import User
 from models.language import Language
+from storage.lang_repo import LanguageRepository
 from storage.user_repo import UserRepository
 
 class AppState:
     def __init__(self):
         self.__user_repo = UserRepository()
+        self.__lang_repo = LanguageRepository()
         self.__user: User | None = None
         self.__language: Language | None = None
 
@@ -19,6 +21,9 @@ class AppState:
 
     def get_user_repo(self) -> UserRepository:
         return self.__user_repo
+
+    def get_lang_repo(self) -> LanguageRepository:
+        return self.__lang_repo
 
     def get_user(self) -> User:
         return self.__user

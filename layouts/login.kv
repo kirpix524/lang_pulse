@@ -1,10 +1,5 @@
 <LoginScreen>:
-    canvas.before:
-        Color:
-            rgba: 0.7, 0.86, 0.71, 1  # Цвет фона (светло-серый)
-        Rectangle:
-            pos: self.pos
-            size: self.size
+    ScreenBackground
     AnchorLayout:
         anchor_x: 'center'
         anchor_y: 'center'
@@ -16,8 +11,15 @@
             spacing: 10
 
             Spinner:
-                id: spinner
+                id: username_spinner
                 text: 'Выберите пользователя'
+                color: 0, 0, 0, 1
+                size_hint_y: None
+                height: 40
+
+            Spinner:
+                id: language_spinner
+                text: 'Выберите язык'
                 color: 0, 0, 0, 1
                 size_hint_y: None
                 height: 40

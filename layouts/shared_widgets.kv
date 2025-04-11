@@ -1,0 +1,25 @@
+<ScreenBackground@Widget>:
+    canvas.before:
+        Color:
+            rgba: 0.7, 0.86, 0.71, 1  # Цвет фона (светло-серый)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<UserInfoPanel@AnchorLayout>:
+    anchor_x: 'left'
+    anchor_y: 'top'
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: None, None
+        size: 200, 50
+        Label:
+            text: 'Пользователь: ' + root.parent.current_user_name
+            color: 0, 0, 0, 1
+            size_hint_y: None
+            height: 25
+        Label:
+            text: 'Язык: ' + root.parent.current_language_name
+            color: 0, 0, 0, 1
+            size_hint_y: None
+            height: 25

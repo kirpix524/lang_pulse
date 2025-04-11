@@ -38,6 +38,17 @@ class BaseScreen(Screen):
             self.current_user_name = self.state.get_user().username or ''
         if self.state.get_language():
             self.current_language_name = self.state.get_language().lang_name or ''
+    def goto_login(self):
+        self.manager.current = 'login'
+
+    def goto_main_menu(self):
+        self.manager.current = 'main_menu'
+
+    def goto_register(self):
+        self.manager.current = 'register'
+
+    def goto_dictionary(self):
+        self.manager.current = 'dictionary'
 
     @property
     def state(self) -> AppState:
@@ -50,18 +61,25 @@ class LoginScreen(BaseScreen):
 
     def on_enter(self):
         """Вызывается при входе на экран"""
-        self.ids.spinner.values = self.state.get_user_repo().get_usernames()
+        self.ids.username_spinner.values = self.state.get_user_repo().get_usernames()
+        self.ids.language_spinner.values = self.state.get_lang_repo().get_language_names()
+        if self.state.get_user():
+            self.ids.username_spinner.text = str(self.state.get_user().username)
+        if self.state.get_language():
+            self.ids.language_spinner.text = str(self.state.get_language().lang_name)
 
     def login(self):
-        username = self.ids.spinner.text
+        username = self.ids.username_spinner.text
+        lang_name = self.ids.language_spinner.text
         if self.state.get_user_repo().user_exists(username):
-            self.state.set_user(self.state.get_user_repo().get_user_by_name(username))
-            self.manager.current = 'main_menu'
+            if self.state.get_lang_repo().get_language_by_name(lang_name):
+                self.state.set_user(self.state.get_user_repo().get_user_by_name(username))
+                self.state.set_language(self.state.get_lang_repo().get_language_by_name(lang_name))
+                self.manager.current = 'main_menu'
+            else:
+                show_error('Нужно выбрать язык')
         else:
             show_error('Пользователь не выбран')
-
-    def goto_register(self):
-        self.manager.current = 'register'
 
 # Экран регистрации
 class RegisterScreen(BaseScreen):
@@ -74,7 +92,7 @@ class RegisterScreen(BaseScreen):
             if not self.state.get_user_repo().user_exists(username):
                 self.state.get_user_repo().add_user(username)
                 self.state.set_user(self.state.get_user_repo().get_user_by_name(username))
-                self.manager.current = 'main_menu'
+                self.goto_login()
             else:
                 show_error("Такое имя пользователя уже есть")
         else:
@@ -86,8 +104,6 @@ class MainMenuScreen(BaseScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def show_dictionary(self):
-        self.manager.current = 'dictionary'
 
 # Экран словаря
 class DictionaryScreen(BaseScreen):
@@ -105,7 +121,7 @@ class LangPulseApp(App):
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}login.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}register.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}dictionary.kv")
-
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}shared_widgets.kv")
         self.sm.add_widget(LoginScreen(name='login'))
         self.sm.add_widget(RegisterScreen(name='register'))
         self.sm.add_widget(MainMenuScreen(name='main_menu'))

@@ -61,7 +61,7 @@ class DBFile(DataBase):
                     line = line.strip()
                     if not line or "|" not in line:
                         continue
-                    language_id, language_code, language_name = line.split("|", 2)
+                    language_id, language_name, language_code = line.split("|", 2)
                     language = Language(int(language_id.strip()), language_code.strip(), language_name.strip())
                     languages.append(language)
         except FileNotFoundError:
