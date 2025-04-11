@@ -12,3 +12,9 @@ class User:
 
     def get_language_name(self) -> str:
         return self.language.name or ''
+
+    def get_language_code(self) -> str:
+        return self.language.code or ''
+
+    def get_language_id(self) -> int:
+        return self.language.id or None
