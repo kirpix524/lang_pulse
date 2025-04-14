@@ -8,7 +8,7 @@ FILE_NAMES = {"USERS": config["users_db_file"],
               "LANGUAGES": config["languages_db_file"],
               "WORDS": config["words_db_file"]}
 DICTIONARY_DATA = {"DIRECTORY": config["dictionaries_directory"],
-                   "FILE_NAME_PREFIX": config["distinctive_file_name_prefix"]}
+                   "FILE_NAME_PREFIX": config["dictionaries_file_name_prefix"]}
 
 LOGS_DIRECTORY = config["logs_directory"]
 SCREEN_WIDTH = config["screen_settings"]["width"]

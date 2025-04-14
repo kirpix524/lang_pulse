@@ -76,9 +76,10 @@ class DBFile(DataBase):
                 file.write(f"{language.lang_id}|{language.lang_code}|{language.lang_name}\n")
 
     def __get_dictionary_file_name(self, user: User, language: Language) -> str:
-        return f"{self.dictionary_data['FILE_NAME_PREFIX']}_{user.username}_{language.lang_code}.txt"
+        return (f"{self.dictionary_data['DIRECTORY']}"
+                + f"{self.dictionary_data['FILE_NAME_PREFIX']}_{user.username}_{language.lang_code}.txt")
 
-    def load_dictionary(self, dictionary:Dictionary) -> list[Word]:
+    def load_dictionary(self, dictionary:Dictionary) -> None:
         user = dictionary.get_user()
         language = dictionary.get_language()
         dictionary_file_name = self.__get_dictionary_file_name(user, language)
@@ -92,9 +93,9 @@ class DBFile(DataBase):
                     word, translation, transcription = line.split("|", 3)
                     words.append(Word(word.strip(), translation.strip(), transcription.strip()))
         except FileNotFoundError:
-            print(f"Файл {self.file_names['DICTIONARY']} не найден. Будет создан при сохранении.")
+            print(f"Файл {dictionary_file_name} не найден. Будет создан при сохранении.")
 
-        return words
+        dictionary.set_words(words)
 
     def save_dictionary(self, dictionary: Dictionary) -> None:
         user = dictionary.get_user()

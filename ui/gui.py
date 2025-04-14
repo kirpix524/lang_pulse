@@ -3,8 +3,10 @@ from kivy.app import App
 from kivy.properties import StringProperty
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.label import Label
 import storage.config as config
 from models.dictionary import Dictionary, Word
+from storage.db import db
 from storage.user_repo import UserRepository
 from models.user import User
 from models.app import AppState
@@ -30,7 +32,7 @@ def show_error(message: str):
     close_button.bind(on_press=popup.dismiss)
     popup.open()
 
-def open_add_word_popup(dictionary:Dictionary):
+def open_add_word_popup(dictionary:Dictionary, on_success=None):
     from kivy.uix.popup import Popup
     from kivy.uix.boxlayout import BoxLayout
     from kivy.uix.textinput import TextInput
@@ -49,7 +51,10 @@ def open_add_word_popup(dictionary:Dictionary):
 
         if term and translation:
             dictionary.add_word(Word(term, translation, transcription))
+            db.save_dictionary(dictionary)
             popup.dismiss()
+            if on_success:
+                on_success()  # <<< вызываем колбэк
 
     add_button = Button(text="Добавить", size_hint_y=None, height=40)
     add_button.bind(on_press=on_add)
@@ -115,6 +120,8 @@ class LoginScreen(BaseScreen):
             if self.state.get_lang_repo().get_language_by_name(lang_name):
                 self.state.set_user(self.state.get_user_repo().get_user_by_name(username))
                 self.state.set_language(self.state.get_lang_repo().get_language_by_name(lang_name))
+                self.state.set_dictionary(Dictionary(self.state.get_user(), self.state.get_language()))
+                db.load_dictionary(self.state.get_dictionary())
                 self.manager.current = 'main_menu'
             else:
                 show_error('Нужно выбрать язык')
@@ -146,10 +153,49 @@ class MainMenuScreen(BaseScreen):
 
 
 # Экран словаря
+def add_col_label(container, title: str):
+    container.add_widget(Label(
+        text=title,
+        bold=True,
+        color=(0, 0, 0, 1),
+        size_hint_y=None,
+        height=30,
+        size_hint_x=None,
+        width=150
+    ))
+
+
 class DictionaryScreen(BaseScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def add_word(self):
+        open_add_word_popup(self.state.get_dictionary(), on_success=self.load_words)
+
+    def on_pre_enter(self):
+        super().on_pre_enter()
+        self.load_words()
+
+    def load_words(self):
+        container = self.ids.words_container
+        container.clear_widgets()
+
+        if not self.state.get_dictionary():
+            return
+
+        words = self.state.get_dictionary().get_words()
+
+        # Заголовки таблицы
+        headers = ["Слово", "Транскрипция", "Перевод", "Добавлено", "Последнее повторение"]
+        for title in headers:
+            add_col_label(container, title)
+
+        for word in words:
+            add_col_label(container, word.word)
+            add_col_label(container, f"[{word.transcription or ''}]")
+            add_col_label(container, word.translation)
+            add_col_label(container, word.added_at.strftime('%H:%M %d.%m.%Y') if word.added_at else '')
+            add_col_label(container, word.last_repeated_at.strftime('%H:%M %d.%m.%Y') if word.last_repeated_at else '')
 
 # Менеджер экранов
 class LangPulseApp(App):

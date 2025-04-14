@@ -5,7 +5,7 @@
   "dictionaries_directory" : "data/dictionaries/",
   "logs_directory" : "data/logs/",
   "layouts_directory" : "layouts/",
-  "dictionary_file_prefix" : "dictionary",
+  "dictionaries_file_name_prefix" : "dictionary",
   "screen_settings" :
   {
     "width" : 1280,
