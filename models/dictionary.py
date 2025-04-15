@@ -1,14 +1,19 @@
 from models.language import Language
 from models.user import User
+from utils.utils import parse_datetime
+
+
 
 
 class Word:
-    def __init__(self, word, translation, transcription):
+    def __init__(self, word, translation, transcription=None, added_at=None, last_repeated_at=None):
         self.word = word
         self.translation = translation
         self.transcription = transcription
-        self.added_at = None
-        self.last_repeated_at = None
+
+        # Преобразование строк в datetime, если они заданы как строки
+        self.added_at = parse_datetime(added_at)
+        self.last_repeated_at = parse_datetime(last_repeated_at)
 
 
 class Dictionary:
@@ -35,5 +40,15 @@ class Dictionary:
     def get_words(self):
         return self.__words
 
+    def get_word(self, word, translation):
+        for w in self.__words:
+            if w.word == word and w.translation == translation:
+                return w
+        return None
+
     def add_word(self, word: Word):
+        # Проверяем, есть ли уже такое сочетание слово + перевод
+        for w in self.__words:
+            if w.word == word.word and w.translation == word.translation:
+                return  # Не добавляем дубликат
         self.__words.append(word)

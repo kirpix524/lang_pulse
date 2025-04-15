@@ -3,9 +3,13 @@
   "languages_db_file" : "data/languages.txt",
   "words_db_file" : "data/words.txt",
   "dictionaries_directory" : "data/dictionaries/",
+  "sessions_list_directory" : "data/session/lists/",
+  "sessions_directory" : "data/session/sessions/",
   "logs_directory" : "data/logs/",
   "layouts_directory" : "layouts/",
   "dictionaries_file_name_prefix" : "dictionary",
+  "sessions_file_name_prefix" : "session",
+  "sessions_list_file_name_prefix" : "session_list",
   "screen_settings" :
   {
     "width" : 1280,

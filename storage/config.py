@@ -9,10 +9,16 @@ FILE_NAMES = {"USERS": config["users_db_file"],
               "WORDS": config["words_db_file"]}
 DICTIONARY_DATA = {"DIRECTORY": config["dictionaries_directory"],
                    "FILE_NAME_PREFIX": config["dictionaries_file_name_prefix"]}
+SESSION_DATA = {"DIRECTORY": config["sessions_directory"],
+                "FILE_NAME_PREFIX": config["sessions_file_name_prefix"],
+                "LIST_DIRECTORY": config["sessions_list_directory"],
+                "LIST_FILE_NAME_PREFIX": config["sessions_list_file_name_prefix"]}
 
 LOGS_DIRECTORY = config["logs_directory"]
 SCREEN_WIDTH = config["screen_settings"]["width"]
 SCREEN_HEIGHT = config["screen_settings"]["height"]
+
+
 LOGIN_SCREEN_CHOOSE_USER_TEXT = config["login_screen_settings"]["choose_user_spinner_text"]
 LOGIN_SCREEN_LOGIN_BUTTON_TEXT = config["login_screen_settings"]["login_button_text"]
 LOGIN_SCREEN_REGISTER_BUTTON_TEXT = config["login_screen_settings"]["register_button_text"]

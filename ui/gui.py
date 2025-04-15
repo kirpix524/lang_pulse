@@ -7,10 +7,8 @@ from kivy.uix.label import Label
 import storage.config as config
 from models.dictionary import Dictionary, Word
 from storage.db import db
-from storage.user_repo import UserRepository
-from models.user import User
 from models.app import AppState
-
+from datetime import datetime
 
 def show_error(message: str):
     from kivy.uix.popup import Popup
@@ -50,7 +48,7 @@ def open_add_word_popup(dictionary:Dictionary, on_success=None):
         translation = translation_input.text.strip()
 
         if term and translation:
-            dictionary.add_word(Word(term, translation, transcription))
+            dictionary.add_word(Word(term, translation, transcription, datetime.now()))
             db.save_dictionary(dictionary)
             popup.dismiss()
             if on_success:
@@ -194,8 +192,14 @@ class DictionaryScreen(BaseScreen):
             add_col_label(container, word.word)
             add_col_label(container, f"[{word.transcription or ''}]")
             add_col_label(container, word.translation)
-            add_col_label(container, word.added_at.strftime('%H:%M %d.%m.%Y') if word.added_at else '')
-            add_col_label(container, word.last_repeated_at.strftime('%H:%M %d.%m.%Y') if word.last_repeated_at else '')
+            add_col_label(container, word.added_at.strftime('%d.%m.%Y %H:%M') if word.added_at else '')
+            add_col_label(container, word.last_repeated_at.strftime('%d.%m.%Y %H:%M') if word.last_repeated_at else '')
+class SessionListScreen(BaseScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def new_session(self):
+        pass
 
 # Менеджер экранов
 class LangPulseApp(App):
