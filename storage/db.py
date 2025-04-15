@@ -1,3 +1,5 @@
+from Demos.win32ts_logoff_disconnected import session
+
 from models.language import Language
 from models.user import User
 from models.dictionary import Word, Dictionary
@@ -19,17 +21,31 @@ class DataBase:
     def save_dictionary(self, dictionary: Dictionary) -> None:
         pass
 
+    def save_session(self, session: Session) -> None:
+        pass
+
     def load_user_list(self) -> list[User]:
         pass
 
     def load_language_list(self) -> list[Language]:
         pass
 
-    def load_dictionary(self, dictionary:Dictionary) -> list[Word]:
+    def load_dictionary(self, user: User, language: Language) -> Dictionary:
         pass
 
     def load_session_list(self, dictionary: Dictionary) -> list[Session]:
         pass
+
+    def load_session(self, dictionary: Dictionary, session_id: int) -> Session:
+        pass
+
+
+def get_parts(line, count):
+    parts = line.strip().split("|")
+    # Дополнить список до 3 элементов значением None
+    parts += [None] * (count - len(parts))
+    return parts
+
 
 class DBFile(DataBase):
     def __init__(self, file_names, dictionary_data, session_data):
@@ -94,12 +110,7 @@ class DBFile(DataBase):
         try:
             with open(session_file_name, "r", encoding="utf-8") as file:
                 for line in file:
-                    line = line.strip()
-                    if not line or "|" not in line:
-                        continue
-                    parts = line.strip().split("|")
-                    # Дополнить список до 5 элементов значением None
-                    parts += [None] * (2 - len(parts))
+                    parts = get_parts(line, 2)
                     term, translation = parts
                     word = dictionary.get_word(term, translation)
                     if word:
@@ -109,43 +120,50 @@ class DBFile(DataBase):
 
         return Session(dictionary, session_id, words)
 
+    def save_session(self, sess: Session) -> None:
+        with open(self.__get_session_file_name(sess.get_id()), "w", encoding="utf-8") as file:
+            for word in sess.get_words():
+                file.write(f"{word.get_term()}|{word.get_translation()}\n")
+
     def load_session_list(self, dictionary:Dictionary) -> list[Session]:
         sessions_list_file_name = self.__get_sessions_list_file_name(dictionary.get_user(), dictionary.get_language())
         sessions: list[Session] = []
-        session_ids: list[int] = []
+        sessions_tmp = []
         try:
             with open(sessions_list_file_name, "r", encoding="utf-8") as file:
                 for line in file:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    session_id = line
-                    session_ids.append(int(session_id))
+                    parts = get_parts(line, 3)
+                    session_id, created_at, last_repeated_at = parts
+                    sess = self.load_session(dictionary, int(session_id))
+                    sess.set_created_at(created_at)
+                    sess.set_last_repeated_at(last_repeated_at)
+                    sessions.append(sess)
         except FileNotFoundError:
             print(f"Файл {sessions_list_file_name} не найден. Будет создан при сохранении.")
 
-        for session_id in session_ids:
-            pass
+
+
         return sessions
+
+    def save_session_list(self,dictionary:Dictionary, sessions: list[Session]) -> None:
+        with open(self.__get_sessions_list_file_name(dictionary.get_user(), dictionary.get_language()), "w", encoding="utf-8") as file:
+            for sess in sessions:
+                file.write(f"{sess.get_id()}"
+                           f"|{sess.get_created_at() if sess.get_created_at() else ''}"
+                           f"|{sess.get_last_repeated_at() if sess.get_last_repeated_at() else ''}\n")
 
     def __get_dictionary_file_name(self, user: User, language: Language) -> str:
         return (f"{self.dictionary_data['DIRECTORY']}"
                 + f"{self.dictionary_data['FILE_NAME_PREFIX']}_{user.username}_{language.lang_code}.txt")
 
-    def load_dictionary(self, dictionary:Dictionary) -> None:
-        user = dictionary.get_user()
-        language = dictionary.get_language()
+    def load_dictionary(self, user: User, language: Language) -> Dictionary:
+        dictionary = Dictionary(user, language)
         dictionary_file_name = self.__get_dictionary_file_name(user, language)
         words: list[Word] = []
         try:
             with open(dictionary_file_name, "r", encoding="utf-8") as file:
                 for line in file:
-                    line = line.strip()
-                    if not line or "|" not in line:
-                        continue
-                    parts = line.strip().split("|")
-                    # Дополнить список до 5 элементов значением None
-                    parts += [None] * (5 - len(parts))
+                    parts = get_parts(line, 5)
                     word, translation, transcription, added_at, last_repeated_at = parts
                     if (added_at is None)or (added_at==''): added_at = datetime.now()
                     words.append(Word(word, translation, transcription, added_at, last_repeated_at))
@@ -153,6 +171,7 @@ class DBFile(DataBase):
             print(f"Файл {dictionary_file_name} не найден. Будет создан при сохранении.")
 
         dictionary.set_words(words)
+        return dictionary
 
     def save_dictionary(self, dictionary: Dictionary) -> None:
         user = dictionary.get_user()

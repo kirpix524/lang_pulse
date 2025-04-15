@@ -7,6 +7,7 @@ from kivy.uix.label import Label
 import storage.config as config
 from models.dictionary import Dictionary, Word
 from storage.db import db
+from storage.session_repo import SessionRepository
 from models.app import AppState
 from datetime import datetime
 
@@ -72,6 +73,16 @@ def open_add_word_popup(dictionary:Dictionary, on_success=None):
     )
     popup.open()
 
+def add_col_label(container, title: str):
+    container.add_widget(Label(
+        text=title,
+        bold=True,
+        color=(0, 0, 0, 1),
+        size_hint_y=None,
+        height=30,
+        size_hint_x=None,
+        width=150
+    ))
 
 class BaseScreen(Screen):
     current_user_name = StringProperty('')
@@ -81,6 +92,10 @@ class BaseScreen(Screen):
             self.current_user_name = self.state.get_user().username or ''
         if self.state.get_language():
             self.current_language_name = self.state.get_language().lang_name or ''
+
+    def goto_screen(self, screen_name):
+        self.manager.current = screen_name
+
     def goto_login(self):
         self.manager.current = 'login'
 
@@ -118,8 +133,8 @@ class LoginScreen(BaseScreen):
             if self.state.get_lang_repo().get_language_by_name(lang_name):
                 self.state.set_user(self.state.get_user_repo().get_user_by_name(username))
                 self.state.set_language(self.state.get_lang_repo().get_language_by_name(lang_name))
-                self.state.set_dictionary(Dictionary(self.state.get_user(), self.state.get_language()))
-                db.load_dictionary(self.state.get_dictionary())
+                self.state.set_dictionary(db.load_dictionary(self.state.get_user(), self.state.get_language()))
+                self.state.set_session_repo(SessionRepository(self.state.get_dictionary()))
                 self.manager.current = 'main_menu'
             else:
                 show_error('Нужно выбрать язык')
@@ -149,32 +164,21 @@ class MainMenuScreen(BaseScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-
-# Экран словаря
-def add_col_label(container, title: str):
-    container.add_widget(Label(
-        text=title,
-        bold=True,
-        color=(0, 0, 0, 1),
-        size_hint_y=None,
-        height=30,
-        size_hint_x=None,
-        width=150
-    ))
-
-
 class DictionaryScreen(BaseScreen):
+    """Экран словаря"""
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def add_word(self):
-        open_add_word_popup(self.state.get_dictionary(), on_success=self.load_words)
+        """Обрабатывает нажатие кнопки "Добавить слово" """
+        open_add_word_popup(self.state.get_dictionary(), on_success=self.show_words)
 
     def on_pre_enter(self):
         super().on_pre_enter()
-        self.load_words()
+        self.show_words()
 
-    def load_words(self):
+    def show_words(self):
+        """Показывает слова в таблице"""
         container = self.ids.words_container
         container.clear_widgets()
 
@@ -194,12 +198,35 @@ class DictionaryScreen(BaseScreen):
             add_col_label(container, word.translation)
             add_col_label(container, word.added_at.strftime('%d.%m.%Y %H:%M') if word.added_at else '')
             add_col_label(container, word.last_repeated_at.strftime('%d.%m.%Y %H:%M') if word.last_repeated_at else '')
+
 class SessionListScreen(BaseScreen):
+    """Экран списка тренировок"""
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def on_pre_enter(self):
+        super().on_pre_enter()
+        self.show_sessions()
+
     def new_session(self):
-        pass
+        """Обработка нажатия кнопки "Новая тренировка" """
+        self.state.get_session_repo().new_session()
+        self.show_sessions()
+        self.goto_screen('session_list')
+
+    def show_sessions(self):
+        """Вывод на экран списка тренировок"""
+        container = self.ids.sessions_container
+        container.clear_widgets()
+        headers = ["Тренировка", "Добавлено", "Последнее повторение"]
+        for title in headers:
+            add_col_label(container, title)
+
+        sessions = self.state.get_session_repo().get_sessions()
+        for session in sessions:
+            add_col_label(container, session.get_session_name() if session.get_session_name() else '')
+            add_col_label(container, session.get_created_at().strftime('%d.%m.%Y %H:%M') if session.get_created_at() else '')
+            add_col_label(container, session.get_last_repeated_at().strftime('%d.%m.%Y %H:%M') if session.get_last_repeated_at() else '')
 
 # Менеджер экранов
 class LangPulseApp(App):
@@ -211,11 +238,13 @@ class LangPulseApp(App):
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}login.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}register.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}dictionary.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_list.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}shared_widgets.kv")
         self.sm.add_widget(LoginScreen(name='login'))
         self.sm.add_widget(RegisterScreen(name='register'))
         self.sm.add_widget(MainMenuScreen(name='main_menu'))
         self.sm.add_widget(DictionaryScreen(name='dictionary'))
+        self.sm.add_widget(SessionListScreen(name='session_list'))
 
         Window.size = (config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
         return self.sm

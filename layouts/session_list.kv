@@ -11,7 +11,7 @@
             text: 'Новая тренировка'
             size_hint: None, None
             size: 160, 40
-            on_press: root.add_word()
+            on_press: root.new_session()
 
     AnchorLayout:
         anchor_x: 'center'
@@ -37,7 +37,7 @@
 
             GridLayout:
                 id: sessions_container
-                cols: 5
+                cols: 3
                 spacing: 10
                 size_hint_y: None
                 padding: 5
@@ -47,4 +47,4 @@
             text: 'Назад'
             size_hint: None, None
             size: 160, 40
-            on_press: root.goto_main_menu()
+            on_press: root.goto_screen('main_menu')

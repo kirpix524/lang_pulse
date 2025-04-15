@@ -23,17 +23,18 @@
                 color: 0, 0, 0, 1
                 size_hint_y: None
                 height: 40
-                on_press: root.goto_dictionary()
+                on_press: root.goto_screen('dictionary')
 
             Button:
                 text: 'Показать тренировки'
                 color: 0, 0, 0, 1
                 size_hint_y: None
                 height: 40
+                on_press: root.goto_screen('session_list')
 
             Button:
                 text: 'Выйти'
                 color: 0, 0, 0, 1
                 size_hint_y: None
                 height: 40
-                on_press: root.goto_login()
+                on_press: root.goto_screen('login')
