@@ -1,5 +1,3 @@
-from Demos.win32ts_logoff_disconnected import sessions
-
 from models.dictionary import Dictionary
 from models.session import Session
 from storage.db import db

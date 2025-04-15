@@ -1,0 +1,19 @@
+<MessagePopup>:
+    title: "Ошибка"
+    size_hint: None, None
+    size: 300, 200
+    auto_dismiss: False
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            id: message_label
+            text: "Ошибка"
+
+        Button:
+            text: "Закрыть"
+            size_hint: 1, 0.3
+            on_press: root.dismiss()

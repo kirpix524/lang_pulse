@@ -1,5 +1,3 @@
-from Demos.win32ts_logoff_disconnected import session
-
 from models.language import Language
 from models.user import User
 from models.dictionary import Word, Dictionary
@@ -120,9 +118,9 @@ class DBFile(DataBase):
 
         return Session(dictionary, session_id, words)
 
-    def save_session(self, sess: Session) -> None:
-        with open(self.__get_session_file_name(sess.get_id()), "w", encoding="utf-8") as file:
-            for word in sess.get_words():
+    def save_session(self, session: Session) -> None:
+        with open(self.__get_session_file_name(session.get_id()), "w", encoding="utf-8") as file:
+            for word in session.get_words():
                 file.write(f"{word.get_term()}|{word.get_translation()}\n")
 
     def load_session_list(self, dictionary:Dictionary) -> list[Session]:
@@ -134,10 +132,10 @@ class DBFile(DataBase):
                 for line in file:
                     parts = get_parts(line, 3)
                     session_id, created_at, last_repeated_at = parts
-                    sess = self.load_session(dictionary, int(session_id))
-                    sess.set_created_at(created_at)
-                    sess.set_last_repeated_at(last_repeated_at)
-                    sessions.append(sess)
+                    session = self.load_session(dictionary, int(session_id))
+                    session.set_created_at(created_at)
+                    session.set_last_repeated_at(last_repeated_at)
+                    sessions.append(session)
         except FileNotFoundError:
             print(f"Файл {sessions_list_file_name} не найден. Будет создан при сохранении.")
 
@@ -147,10 +145,10 @@ class DBFile(DataBase):
 
     def save_session_list(self,dictionary:Dictionary, sessions: list[Session]) -> None:
         with open(self.__get_sessions_list_file_name(dictionary.get_user(), dictionary.get_language()), "w", encoding="utf-8") as file:
-            for sess in sessions:
-                file.write(f"{sess.get_id()}"
-                           f"|{sess.get_created_at() if sess.get_created_at() else ''}"
-                           f"|{sess.get_last_repeated_at() if sess.get_last_repeated_at() else ''}\n")
+            for session in sessions:
+                file.write(f"{session.get_id()}"
+                           f"|{session.get_created_at() if session.get_created_at() else ''}"
+                           f"|{session.get_last_repeated_at() if session.get_last_repeated_at() else ''}\n")
 
     def __get_dictionary_file_name(self, user: User, language: Language) -> str:
         return (f"{self.dictionary_data['DIRECTORY']}"

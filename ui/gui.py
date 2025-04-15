@@ -1,6 +1,7 @@
 from kivy.core.window import Window
 from kivy.app import App
 from kivy.properties import StringProperty
+from kivy.uix.popup import Popup
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.label import Label
@@ -11,66 +12,10 @@ from storage.session_repo import SessionRepository
 from models.app import AppState
 from datetime import datetime
 
-def show_error(message: str):
-    from kivy.uix.popup import Popup
-    from kivy.uix.label import Label
-    from kivy.uix.boxlayout import BoxLayout
-    from kivy.uix.button import Button
-
-    layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
-    layout.add_widget(Label(text=message))
-
-    close_button = Button(text='Закрыть', size_hint=(1, 0.3))
-    layout.add_widget(close_button)
-
-    popup = Popup(title='Ошибка',
-                  content=layout,
-                  size_hint=(None, None),
-                  size=(300, 200),
-                  auto_dismiss=False)
-    close_button.bind(on_press=popup.dismiss)
-    popup.open()
-
-def open_add_word_popup(dictionary:Dictionary, on_success=None):
-    from kivy.uix.popup import Popup
-    from kivy.uix.boxlayout import BoxLayout
-    from kivy.uix.textinput import TextInput
-    from kivy.uix.button import Button
-    from kivy.uix.label import Label
-    layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
-
-    word_input = TextInput(hint_text="Слово", multiline=False)
-    transcription_input = TextInput(hint_text="Транскрипция", multiline=False)
-    translation_input = TextInput(hint_text="Перевод", multiline=False)
-
-    def on_add(instance):
-        term = word_input.text.strip()
-        transcription = transcription_input.text.strip()
-        translation = translation_input.text.strip()
-
-        if term and translation:
-            dictionary.add_word(Word(term, translation, transcription, datetime.now()))
-            db.save_dictionary(dictionary)
-            popup.dismiss()
-            if on_success:
-                on_success()  # <<< вызываем колбэк
-
-    add_button = Button(text="Добавить", size_hint_y=None, height=40)
-    add_button.bind(on_press=on_add)
-
-    layout.add_widget(Label(text="Добавление слова", size_hint_y=None, height=30))
-    layout.add_widget(word_input)
-    layout.add_widget(transcription_input)
-    layout.add_widget(translation_input)
-    layout.add_widget(add_button)
-
-    popup = Popup(
-        title="Новое слово",
-        content=layout,
-        size_hint=(None, None),
-        size=(400, 400),
-        auto_dismiss=True
-    )
+def show_message(title: str, message: str):
+    popup = MessagePopup()
+    popup.set_message(message)
+    popup.set_title(title)
     popup.open()
 
 def add_col_label(container, title: str):
@@ -84,6 +29,33 @@ def add_col_label(container, title: str):
         width=150
     ))
 
+class MessagePopup(Popup):
+    def set_message(self, message):
+        # Устанавливаем текст сообщения
+        self.ids.message_label.text = message
+
+    def set_title(self, title):
+        # Устанавливаем заголовок сообщения
+        self.title = title
+
+class AddWordPopup(Popup):
+    def __init__(self, dictionary, on_success=None, **kwargs):
+        super().__init__(**kwargs)
+        self.dictionary = dictionary
+        self.on_success = on_success
+
+    def add_word(self):
+        term = self.ids.word_input.text.strip()
+        transcription = self.ids.transcription_input.text.strip()
+        translation = self.ids.translation_input.text.strip()
+
+        if term and translation:
+            self.dictionary.add_word(Word(term, translation, transcription, datetime.now()))
+            db.save_dictionary(self.dictionary)
+            self.dismiss()
+            if self.on_success:
+                self.on_success()
+
 class BaseScreen(Screen):
     current_user_name = StringProperty('')
     current_language_name = StringProperty('')
@@ -95,18 +67,6 @@ class BaseScreen(Screen):
 
     def goto_screen(self, screen_name):
         self.manager.current = screen_name
-
-    def goto_login(self):
-        self.manager.current = 'login'
-
-    def goto_main_menu(self):
-        self.manager.current = 'main_menu'
-
-    def goto_register(self):
-        self.manager.current = 'register'
-
-    def goto_dictionary(self):
-        self.manager.current = 'dictionary'
 
     @property
     def state(self) -> AppState:
@@ -137,9 +97,9 @@ class LoginScreen(BaseScreen):
                 self.state.set_session_repo(SessionRepository(self.state.get_dictionary()))
                 self.manager.current = 'main_menu'
             else:
-                show_error('Нужно выбрать язык')
+                show_message("Ошибка",'Нужно выбрать язык')
         else:
-            show_error('Пользователь не выбран')
+            show_message("Ошибка",'Пользователь не выбран')
 
 # Экран регистрации
 class RegisterScreen(BaseScreen):
@@ -152,11 +112,11 @@ class RegisterScreen(BaseScreen):
             if not self.state.get_user_repo().user_exists(username):
                 self.state.get_user_repo().add_user(username)
                 self.state.set_user(self.state.get_user_repo().get_user_by_name(username))
-                self.goto_login()
+                self.goto_screen('login')
             else:
-                show_error("Такое имя пользователя уже есть")
+                show_message("Ошибка","Такое имя пользователя уже есть")
         else:
-            show_error("Введите имя пользователя")
+            show_message("Ошибка","Введите имя пользователя")
 
 
 # Главное меню
@@ -171,7 +131,9 @@ class DictionaryScreen(BaseScreen):
 
     def add_word(self):
         """Обрабатывает нажатие кнопки "Добавить слово" """
-        open_add_word_popup(self.state.get_dictionary(), on_success=self.show_words)
+        #open_add_word_popup(self.state.get_dictionary(), on_success=self.show_words)
+        popup = AddWordPopup(self.state.get_dictionary(), on_success=self.show_words)
+        popup.open()
 
     def on_pre_enter(self):
         super().on_pre_enter()
@@ -240,6 +202,8 @@ class LangPulseApp(App):
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}dictionary.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_list.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}shared_widgets.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}message_popup.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}add_word_popup.kv")
         self.sm.add_widget(LoginScreen(name='login'))
         self.sm.add_widget(RegisterScreen(name='register'))
         self.sm.add_widget(MainMenuScreen(name='main_menu'))
