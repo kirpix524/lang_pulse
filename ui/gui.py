@@ -308,7 +308,7 @@ class SessionScreen(BaseScreen):
 
         def on_added(words):
             session.add_words(words)
-            db.save_session(session)
+            db.save_all_sessions(self.state.get_dictionary(), self.state.get_session_repo().get_sessions())
             self.show_words()
 
         popup = ChooseWordsPopup(words=available_words, on_words_selected=on_added)
@@ -325,7 +325,7 @@ class SessionScreen(BaseScreen):
 
         def on_deleted(words):
             session.del_words(words)
-            db.save_session(session)
+            db.save_all_sessions()
             self.show_words()
 
         popup = ChooseWordsPopup(words=available_words, on_words_selected=on_deleted)

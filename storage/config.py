@@ -9,10 +9,8 @@ FILE_NAMES = {"USERS": config["users_db_file"],
               "WORDS": config["words_db_file"]}
 DICTIONARY_DATA = {"DIRECTORY": config["dictionaries_directory"],
                    "FILE_NAME_PREFIX": config["dictionaries_file_name_prefix"]}
-SESSION_DATA = {"DIRECTORY": config["sessions_directory"],
-                "FILE_NAME_PREFIX": config["sessions_file_name_prefix"],
-                "LIST_DIRECTORY": config["sessions_list_directory"],
-                "LIST_FILE_NAME_PREFIX": config["sessions_list_file_name_prefix"]}
+SESSIONS_DATA = {"DIRECTORY": config["sessions_directory"],
+                "FILE_NAME_PREFIX": config["sessions_file_name_prefix"]}
 
 LOGS_DIRECTORY = config["logs_directory"]
 SCREEN_WIDTH = config["screen_settings"]["width"]

@@ -16,6 +16,7 @@ class Session:
 
         self.__active_words = []  # список слов в текущей тренировке
         self.__current_word = None
+        self.__word_stats: dict[str, dict] = {}
 
     # Тренировка
     def start_training(self, direction: str, interval: float):
@@ -69,6 +70,12 @@ class Session:
 
     def get_session_name(self):
         return f"Session {self.__session_id}"
+
+    def get_user(self):
+        return self.__dictionary.get_user()
+
+    def get_language(self):
+        return self.__dictionary.get_language()
 
     def set_created_at(self, created_at):
         self.__created_at = created_at
