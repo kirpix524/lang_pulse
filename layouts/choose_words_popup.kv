@@ -1,0 +1,36 @@
+<ChooseWordsPopup>:
+    title: "Выбор нескольких слов"
+    size_hint: None, None
+    size: 800, 500
+    auto_dismiss: False
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        ScrollView:
+            do_scroll_x: False
+            do_scroll_y: True
+            GridLayout:
+                id: words_grid
+                cols: 6  # Чекбокс + 5 колонок
+                spacing: 5
+                padding: 5
+                size_hint_y: None
+                size_hint_x: 1
+                height: self.minimum_height
+
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            spacing: 10
+
+            Button:
+                text: "Выбрать"
+                on_press: root.select_words()
+
+            Button:
+                text: "Отмена"
+                on_press: root.dismiss()

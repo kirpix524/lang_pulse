@@ -6,6 +6,7 @@ from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.label import Label
 from kivy.uix.button import Button
+from kivy.uix.checkbox import CheckBox
 import storage.config as config
 from models.dictionary import Dictionary, Word
 from storage.db import db
@@ -30,6 +31,8 @@ def add_col_label(container, title: str):
         width=150
     ))
 
+
+
 class MessagePopup(Popup):
     def set_message(self, message):
         # Устанавливаем текст сообщения
@@ -39,13 +42,13 @@ class MessagePopup(Popup):
         # Устанавливаем заголовок сообщения
         self.title = title
 
-class AddWordPopup(Popup):
+class AddNewWordPopup(Popup):
     def __init__(self, dictionary, on_success=None, **kwargs):
         super().__init__(**kwargs)
         self.dictionary = dictionary
         self.on_success = on_success
 
-    def add_word(self):
+    def add_new_word(self):
         term = self.ids.word_input.text.strip()
         transcription = self.ids.transcription_input.text.strip()
         translation = self.ids.translation_input.text.strip()
@@ -56,6 +59,40 @@ class AddWordPopup(Popup):
             self.dismiss()
             if self.on_success:
                 self.on_success()
+
+class ChooseWordsPopup(Popup):
+    def __init__(self, words, on_words_selected, **kwargs):
+        super().__init__(**kwargs)
+        self.words = words
+        self.on_words_selected = on_words_selected
+        self.checkboxes = {}
+        self.populate_word_list()
+
+    def populate_word_list(self):
+        grid = self.ids.words_grid
+        grid.clear_widgets()
+
+        # Заголовки
+        grid.add_widget(Label(text='', bold=True))
+        for header in ["Слово", "Транскрипция", "Перевод", "Добавлено", "Последнее повторение"]:
+            grid.add_widget(Label(text=header, bold=True, color=(0, 0, 0, 1)))
+
+        for word in self.words:
+            cb = CheckBox(size_hint=(None, None), size=(30, 30))
+            self.checkboxes[word] = cb
+            grid.add_widget(cb)
+
+            grid.add_widget(Label(text=word.word))
+            grid.add_widget(Label(text=word.transcription or ''))
+            grid.add_widget(Label(text=word.translation))
+            grid.add_widget(Label(text=word.added_at.strftime('%Y-%m-%d %H:%M') if word.added_at else ''))
+            grid.add_widget(Label(text=word.last_repeated_at.strftime('%Y-%m-%d %H:%M') if word.last_repeated_at else ''))
+
+    def select_words(self):
+        selected = [word for word, cb in self.checkboxes.items() if cb.active]
+        self.on_words_selected(selected)
+        self.dismiss()
+
 
 class BaseScreen(Screen):
     current_user_name = StringProperty('')
@@ -132,8 +169,7 @@ class DictionaryScreen(BaseScreen):
 
     def add_word(self):
         """Обрабатывает нажатие кнопки "Добавить слово" """
-        #open_add_word_popup(self.state.get_dictionary(), on_success=self.show_words)
-        popup = AddWordPopup(self.state.get_dictionary(), on_success=self.show_words)
+        popup = AddNewWordPopup(self.state.get_dictionary(), on_success=self.show_words)
         popup.open()
 
     def on_pre_enter(self):
@@ -231,11 +267,25 @@ class SessionScreen(BaseScreen):
         # Реализация запуска тренировки с заданным интервалом
         show_message("Сообщение", f"Запуск тренировки с интервалом: {interval} сек.")
 
-    def add_word_to_session(self):
+    def add_words_to_session(self):
         # Реализация добавления слова в тренировку
-        pass
+        dictionary = self.state.get_dictionary()
+        session = self.state.get_session()
 
-    def remove_word_from_session(self):
+        if not dictionary or not session:
+            show_message("Ошибка", "Словарь или тренировка не найдены")
+
+        available_words = session.get_words_not_in_session()
+
+        def on_added(words):
+            session.add_words(words)
+            db.save_session(session)
+            self.show_words()
+
+        popup = ChooseWordsPopup(words=available_words, on_words_selected=on_added)
+        popup.open()
+
+    def remove_words_from_session(self):
         # Реализация удаления слова из тренировки
         pass
 
@@ -252,7 +302,8 @@ class LangPulseApp(App):
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_list.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}shared_widgets.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}message_popup.kv")
-        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}add_word_popup.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}add_new_word_popup.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}choose_words_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session.kv")
         self.sm.add_widget(LoginScreen(name='login'))
         self.sm.add_widget(RegisterScreen(name='register'))

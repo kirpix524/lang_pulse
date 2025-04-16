@@ -11,10 +11,11 @@ class Session:
         self.__created_at = datetime.now()
         self.__last_repeated_at = None
 
-    def add_word(self, word: Word):
-        self.__words.append(word)
+    def add_words(self, words: list[Word]):
+        for word in words:
+            self.__words.append(word)
 
-    def get_words(self):
+    def get_words(self) -> list[Word]:
         return self.__words
 
     def get_id(self):
@@ -34,3 +35,7 @@ class Session:
 
     def set_last_repeated_at(self, last_repeated_at):
         self.__last_repeated_at = last_repeated_at
+
+    def get_words_not_in_session(self) -> list[Word]:
+        existing_words = {w.word for w in self.__words}
+        return [w for w in self.__dictionary.get_words() if w.word not in existing_words]

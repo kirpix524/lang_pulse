@@ -121,7 +121,7 @@ class DBFile(DataBase):
     def save_session(self, session: Session) -> None:
         with open(self.__get_session_file_name(session.get_id()), "w", encoding="utf-8") as file:
             for word in session.get_words():
-                file.write(f"{word.get_term()}|{word.get_translation()}\n")
+                file.write(f"{word.word}|{word.translation}\n")
 
     def load_session_list(self, dictionary:Dictionary) -> list[Session]:
         sessions_list_file_name = self.__get_sessions_list_file_name(dictionary.get_user(), dictionary.get_language())
