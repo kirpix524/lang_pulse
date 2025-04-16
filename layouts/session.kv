@@ -1,0 +1,60 @@
+<SessionScreen>:
+    ScreenBackground
+    UserInfoPanel
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            text: 'Тренировка'
+            font_size: '24sp'
+            size_hint_y: None
+            height: 40
+            color: 0, 0, 0, 1
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40
+            spacing: 10
+
+            TextInput:
+                id: interval_input
+                hint_text: 'Интервал (сек)'
+                input_filter: 'float'
+                multiline: False
+                size_hint_x: 0.4
+
+            Button:
+                text: 'Начать тренировку'
+                on_press: root.start_session()
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40
+            spacing: 10
+
+            Button:
+                text: 'Добавить слово'
+                on_press: root.add_word_to_session()
+
+            Button:
+                text: 'Удалить слово'
+                on_press: root.remove_word_from_session()
+
+        ScrollView:
+            GridLayout:
+                id: words_container
+                cols: 1
+                spacing: 5
+                size_hint_y: None
+                height: self.minimum_height
+
+        Button:
+            text: 'Назад'
+            size_hint_y: None
+            height: 40
+            on_press: root.goto_screen('session_list')

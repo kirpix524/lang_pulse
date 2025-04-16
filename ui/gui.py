@@ -5,6 +5,7 @@ from kivy.uix.popup import Popup
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.label import Label
+from kivy.uix.button import Button
 import storage.config as config
 from models.dictionary import Dictionary, Word
 from storage.db import db
@@ -176,6 +177,27 @@ class SessionListScreen(BaseScreen):
         self.show_sessions()
         self.goto_screen('session_list')
 
+    def add_session_row(self, container, session):
+        def on_click(instance):
+            self.state.set_session(session)
+            self.goto_screen('session')
+
+        btn = Button(
+            text=session.get_session_name() or "Без имени",
+            size_hint_y=None,
+            height=30,
+            size_hint_x=None,
+            width=150,
+            on_press=on_click,
+            background_normal='',
+            background_color=(0.9, 0.9, 0.9, 1),
+            color=(0, 0, 0, 1)
+        )
+        container.add_widget(btn)
+        add_col_label(container, session.get_created_at().strftime('%d.%m.%Y %H:%M'))
+        add_col_label(container, session.get_last_repeated_at().strftime(
+            '%d.%m.%Y %H:%M') if session.get_last_repeated_at() else '')
+
     def show_sessions(self):
         """Вывод на экран списка тренировок"""
         container = self.ids.sessions_container
@@ -186,9 +208,36 @@ class SessionListScreen(BaseScreen):
 
         sessions = self.state.get_session_repo().get_sessions()
         for session in sessions:
-            add_col_label(container, session.get_session_name() if session.get_session_name() else '')
-            add_col_label(container, session.get_created_at().strftime('%d.%m.%Y %H:%M') if session.get_created_at() else '')
-            add_col_label(container, session.get_last_repeated_at().strftime('%d.%m.%Y %H:%M') if session.get_last_repeated_at() else '')
+            self.add_session_row(container, session)
+
+class SessionScreen(BaseScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def on_pre_enter(self):
+        super().on_pre_enter()
+        self.show_words()
+
+    def show_words(self):
+        self.ids.words_container.clear_widgets()
+        session = self.state.get_session()
+        if not session:
+            return
+        for word in session.get_words():
+            add_col_label(self.ids.words_container, word.word)
+
+    def start_session(self):
+        interval = self.ids.interval_input.text.strip()
+        # Реализация запуска тренировки с заданным интервалом
+        show_message("Сообщение", f"Запуск тренировки с интервалом: {interval} сек.")
+
+    def add_word_to_session(self):
+        # Реализация добавления слова в тренировку
+        pass
+
+    def remove_word_from_session(self):
+        # Реализация удаления слова из тренировки
+        pass
 
 # Менеджер экранов
 class LangPulseApp(App):
@@ -204,11 +253,13 @@ class LangPulseApp(App):
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}shared_widgets.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}message_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}add_word_popup.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session.kv")
         self.sm.add_widget(LoginScreen(name='login'))
         self.sm.add_widget(RegisterScreen(name='register'))
         self.sm.add_widget(MainMenuScreen(name='main_menu'))
         self.sm.add_widget(DictionaryScreen(name='dictionary'))
         self.sm.add_widget(SessionListScreen(name='session_list'))
+        self.sm.add_widget(SessionScreen(name='session'))
 
         Window.size = (config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
         return self.sm
