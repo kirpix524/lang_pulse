@@ -287,7 +287,20 @@ class SessionScreen(BaseScreen):
 
     def remove_words_from_session(self):
         # Реализация удаления слова из тренировки
-        pass
+        session = self.state.get_session()
+
+        if not session:
+            show_message("Ошибка", "Словарь или тренировка не найдены")
+
+        available_words = session.get_words()
+
+        def on_deleted(words):
+            session.del_words(words)
+            db.save_session(session)
+            self.show_words()
+
+        popup = ChooseWordsPopup(words=available_words, on_words_selected=on_deleted)
+        popup.open()
 
 # Менеджер экранов
 class LangPulseApp(App):

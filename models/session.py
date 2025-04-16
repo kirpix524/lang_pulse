@@ -15,6 +15,10 @@ class Session:
         for word in words:
             self.__words.append(word)
 
+    def del_words(self, words: list[Word]):
+        for word in words:
+            self.__words.remove(word)
+
     def get_words(self) -> list[Word]:
         return self.__words
 
