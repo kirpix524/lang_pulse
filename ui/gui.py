@@ -1,3 +1,4 @@
+import random
 from kivy.core.window import Window
 from kivy.app import App
 from kivy.properties import StringProperty
@@ -7,6 +8,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
+from kivy.clock import Clock
 import storage.config as config
 from models.dictionary import Dictionary, Word
 from storage.db import db
@@ -92,6 +94,16 @@ class ChooseWordsPopup(Popup):
         selected = [word for word, cb in self.checkboxes.items() if cb.active]
         self.on_words_selected(selected)
         self.dismiss()
+
+class DirectionSelectPopup(Popup):
+    def __init__(self, on_selected, **kwargs):
+        super().__init__(**kwargs)
+        self.on_selected = on_selected
+
+    def choose(self, direction):
+        self.dismiss()
+        if self.on_selected:
+            self.on_selected(direction)
 
 
 class BaseScreen(Screen):
@@ -263,9 +275,26 @@ class SessionScreen(BaseScreen):
             add_col_label(self.ids.words_container, word.word)
 
     def start_session(self):
-        interval = self.ids.interval_input.text.strip()
-        # Реализация запуска тренировки с заданным интервалом
-        show_message("Сообщение", f"Запуск тренировки с интервалом: {interval} сек.")
+        interval_text = self.ids.interval_input.text.strip()
+
+        if not interval_text or not interval_text.isdigit():
+            show_message("Ошибка", "Введите корректный интервал в секундах")
+            return
+
+        interval = float(interval_text)
+        session = self.state.get_session()
+
+        if not session or len(session.get_words())<5:
+            show_message("Ошибка", "Добавьте не менее 5 слов в тренировку")
+            return
+
+        def on_direction_chosen(direction):
+            session.set_interval(interval)
+            session.set_direction(direction)
+            self.goto_screen('session_training')
+
+        popup = DirectionSelectPopup(on_selected=on_direction_chosen)
+        popup.open()
 
     def add_words_to_session(self):
         # Реализация добавления слова в тренировку
@@ -302,6 +331,86 @@ class SessionScreen(BaseScreen):
         popup = ChooseWordsPopup(words=available_words, on_words_selected=on_deleted)
         popup.open()
 
+class SessionTrainingScreen(BaseScreen):
+    training_text = StringProperty("")
+    translation_visible = False
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._tick = None
+
+    def on_pre_enter(self):
+        super().on_pre_enter()
+        Window.bind(on_key_down=self._on_key_down)
+        self.start_training()
+
+    def on_leave(self):
+        Window.unbind(on_key_down=self._on_key_down)
+        self.training_text = ""
+        self.translation_visible = False
+        if self._tick:
+            Clock.unschedule(self._tick)
+
+    def start_training(self):
+        session = self.state.get_session()
+        interval = session.get_interval() or 3
+        direction = session.get_direction() or "to_ru"
+
+        session.start_training(direction, interval)
+        self.next_step()
+
+    def next_step(self, *_):
+        session = self.state.get_session()
+
+        if session.is_complete():
+            self.training_text = "🎉 Тренировка завершена"
+            return
+
+        word = session.get_next_word()
+        if not word:
+            self.training_text = "⚠ Нет слов"
+            return
+
+        self.translation_visible = False
+
+        if session.get_direction() == "to_ru":
+            self.training_text = word.word
+        else:
+            self.training_text = word.translation
+
+        self._tick = Clock.schedule_once(self.show_translation, session.get_interval())
+
+    def show_translation(self, *_):
+        session = self.state.get_session()
+        word = session.get_current_word()
+
+        if not word or self.translation_visible:
+            return
+
+        if session.get_direction() == "to_ru":
+            self.training_text += f"\n[перевод: {word.translation}]"
+        else:
+            self.training_text += f"\n[перевод: {word.word}]"
+
+        self.translation_visible = True
+
+        # Переместить слово назад в списке
+        session.mark_forgotten()
+        Clock.schedule_once(self.next_step, 2)
+
+    def _on_key_down(self, window, key, scancode, codepoint, modifiers):
+        if self.state.get_session().is_complete():
+            return
+
+        if key == 13:  # Enter
+            Clock.unschedule(self._tick)
+            self.state.get_session().mark_remembered()
+            self.next_step()
+        elif key == 32:  # Space
+            Clock.unschedule(self._tick)
+            self.show_translation()
+
+
 # Менеджер экранов
 class LangPulseApp(App):
     def build(self):
@@ -317,13 +426,16 @@ class LangPulseApp(App):
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}message_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}add_new_word_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}choose_words_popup.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}direction_select_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_training.kv")
         self.sm.add_widget(LoginScreen(name='login'))
         self.sm.add_widget(RegisterScreen(name='register'))
         self.sm.add_widget(MainMenuScreen(name='main_menu'))
         self.sm.add_widget(DictionaryScreen(name='dictionary'))
         self.sm.add_widget(SessionListScreen(name='session_list'))
         self.sm.add_widget(SessionScreen(name='session'))
+        self.sm.add_widget(SessionTrainingScreen(name='session_training'))
 
         Window.size = (config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
         return self.sm

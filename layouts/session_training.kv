@@ -1,0 +1,25 @@
+<SessionTrainingScreen>:
+    ScreenBackground
+    UserInfoPanel
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            id: word_display
+            text: root.training_text
+            font_size: '32sp'
+            halign: 'center'
+            valign: 'middle'
+            color: 0, 0, 0, 1
+            text_size: self.size
+            size_hint_y: None
+            height: 200
+
+        Button:
+            text: 'Назад'
+            size_hint_y: None
+            height: 40
+            on_press: root.goto_screen('session')

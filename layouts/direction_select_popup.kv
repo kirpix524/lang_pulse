@@ -1,0 +1,18 @@
+<DirectionSelectPopup>:
+    title: "Выберите направление"
+    size_hint: None, None
+    size: 300, 200
+    auto_dismiss: True
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Button:
+            text: "Иностранный → Русский"
+            on_press: root.choose("to_ru")
+
+        Button:
+            text: "Русский → Иностранный"
+            on_press: root.choose("to_foreign")
