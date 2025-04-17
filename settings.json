@@ -8,6 +8,8 @@
   "dictionaries_file_name_prefix" : "dictionary",
   "sessions_directory" : "data/sessions/",
   "sessions_file_name_prefix" : "sessions",
+  "stats_directory" : "data/stats/",
+  "stats_file_name_prefix" : "stats",
   "screen_settings" :
   {
     "width" : 1280,

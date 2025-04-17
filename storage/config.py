@@ -11,6 +11,8 @@ DICTIONARY_DATA = {"DIRECTORY": config["dictionaries_directory"],
                    "FILE_NAME_PREFIX": config["dictionaries_file_name_prefix"]}
 SESSIONS_DATA = {"DIRECTORY": config["sessions_directory"],
                 "FILE_NAME_PREFIX": config["sessions_file_name_prefix"]}
+STATS_DATA = {"DIRECTORY": config["stats_directory"],
+              "FILE_NAME_PREFIX": config["stats_file_name_prefix"]}
 
 LOGS_DIRECTORY = config["logs_directory"]
 SCREEN_WIDTH = config["screen_settings"]["width"]

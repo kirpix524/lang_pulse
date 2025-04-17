@@ -141,6 +141,7 @@ class SessionStatsPopup(Popup):
     def on_leave(self):
         if self.on_dismiss:
             self.on_dismiss()
+
 class BaseScreen(Screen):
     current_user_name = StringProperty('')
     current_language_name = StringProperty('')
@@ -397,7 +398,8 @@ class SessionTrainingScreen(BaseScreen):
         Window.unbind(on_key_down=self._on_key_down)
         self.training_text = "🎉 Тренировка завершена"
         session = self.state.get_session()
-
+        # Сохранить статистику
+        db.save_training_stats(session)
         # Показать статистику
         stats = session.get_stats()
         popup = SessionStatsPopup(stats=stats, on_dismiss=self.goto_screen('session'))

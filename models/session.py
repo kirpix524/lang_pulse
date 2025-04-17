@@ -27,6 +27,7 @@ class Session:
         random.shuffle(self.__active_words)
         self.__current_word = None
         self.__last_repeated_at = datetime.now()
+        self.__stats = []
 
     def get_next_word(self) -> Word | None:
         if not self.__active_words:

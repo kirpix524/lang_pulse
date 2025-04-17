@@ -1,8 +1,10 @@
+from pathlib import Path
+from datetime import datetime
 from models.language import Language
 from models.user import User
 from models.dictionary import Word, Dictionary
 from models.session import Session
-from datetime import datetime
+
 
 import storage.config as config
 
@@ -40,6 +42,12 @@ class DataBase:
     def save_session(self, session: Session) -> None:
         pass
 
+    def save_training_stats(self, session: Session):
+        pass
+
+    def load_training_stats(self):
+        pass
+
 
 def get_parts(line, count):
     parts = line.strip().split("|")
@@ -49,16 +57,17 @@ def get_parts(line, count):
 
 
 class DBFile(DataBase):
-    def __init__(self, file_names, dictionary_data, session_data):
+    def __init__(self, file_names, dictionary_data, session_data, stats_data):
         super().__init__()
-        self.file_names = file_names
-        self.dictionary_data = dictionary_data
-        self.session_data = session_data
+        self.__file_names = file_names
+        self.__dictionary_data = dictionary_data
+        self.__session_data = session_data
+        self.__stats_data = stats_data
 
     def load_user_list(self) -> list[User]:
         users: list[User] = []
         try:
-            with open(self.file_names["USERS"], "r", encoding="utf-8") as file:
+            with open(self.__file_names["USERS"], "r", encoding="utf-8") as file:
                 for line in file:
                     line = line.strip()
                     if not line or "|" not in line:
@@ -67,19 +76,19 @@ class DBFile(DataBase):
                     user = User(username.strip(), int(user_id.strip()))
                     users.append(user)
         except FileNotFoundError:
-            print(f"Файл {self.file_names["USERS"]} не найден. Будет создан при сохранении.")
+            print(f"Файл {self.__file_names["USERS"]} не найден. Будет создан при сохранении.")
 
         return users
 
     def save_user_list(self, user_list: list[User]) -> None:
-        with open(self.file_names["USERS"], "w", encoding="utf-8") as file:
+        with open(self.__file_names["USERS"], "w", encoding="utf-8") as file:
             for user in user_list:
                 file.write(f"{user.userid}|{user.username}\n")
 
     def load_language_list(self) -> list[Language]:
         languages: list[Language] = []
         try:
-            with open(self.file_names["LANGUAGES"], "r", encoding="utf-8") as file:
+            with open(self.__file_names["LANGUAGES"], "r", encoding="utf-8") as file:
                 for line in file:
                     line = line.strip()
                     if not line or "|" not in line:
@@ -88,18 +97,20 @@ class DBFile(DataBase):
                     language = Language(int(language_id.strip()), language_code.strip(), language_name.strip())
                     languages.append(language)
         except FileNotFoundError:
-            print(f"Файл {self.file_names["LANGUAGES"]} не найден. Будет создан при сохранении.")
+            print(f"Файл {self.__file_names["LANGUAGES"]} не найден. Будет создан при сохранении.")
 
         return languages
 
     def save_language_list(self, language_list: list[Language]) -> None:
-        with open(self.file_names["LANGUAGES"], "w", encoding="utf-8") as file:
+        with open(self.__file_names["LANGUAGES"], "w", encoding="utf-8") as file:
             for language in language_list:
                 file.write(f"{language.lang_id}|{language.lang_code}|{language.lang_name}\n")
 
     def __get_sessions_file_name(self, user: User, language: Language) -> str:
-        return (f"{self.session_data['DIRECTORY']}"
-                + f"{self.session_data['FILE_NAME_PREFIX']}_{user.username}_{language.lang_code}.txt")
+        file_path = (f"{self.__session_data['DIRECTORY']}"
+                + f"{self.__session_data['FILE_NAME_PREFIX']}_{user.username}_{language.lang_code}.txt")
+        Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+        return file_path
 
     def load_all_sessions(self, dictionary: Dictionary) -> list[Session]:
         sessions_file = self.__get_sessions_file_name(dictionary.get_user(), dictionary.get_language())
@@ -151,8 +162,10 @@ class DBFile(DataBase):
                     )
 
     def __get_dictionary_file_name(self, user: User, language: Language) -> str:
-        return (f"{self.dictionary_data['DIRECTORY']}"
-                + f"{self.dictionary_data['FILE_NAME_PREFIX']}_{user.username}_{language.lang_code}.txt")
+        file_path = (f"{self.__dictionary_data['DIRECTORY']}"
+                + f"{self.__dictionary_data['FILE_NAME_PREFIX']}_{user.username}_{language.lang_code}.txt")
+        Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+        return file_path
 
     def load_dictionary(self, user: User, language: Language) -> Dictionary:
         dictionary = Dictionary(user, language)
@@ -182,5 +195,32 @@ class DBFile(DataBase):
                            f"|{word.added_at if word.added_at else ''}"
                            f"|{word.last_repeated_at if word.last_repeated_at else ''}\n")
 
-db = DBFile(config.FILE_NAMES, config.DICTIONARY_DATA, config.SESSIONS_DATA)
+    def __get_stats_file_name(self, user: User, language: Language) -> str:
+        file_path = (f"{self.__stats_data['DIRECTORY']}"
+                + f"{self.__stats_data['FILE_NAME_PREFIX']}_{user.username}_{language.lang_code}.txt")
+        Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+        return file_path
+
+    def save_training_stats(self, session: Session):
+        """
+        Сохраняет статистику тренировки в файл. Каждый элемент stats — это словарь с ключами:
+        word, translation, success, recall_time, timestamp, direction
+        """
+        stats = session.get_stats()
+        file_path = self.__get_stats_file_name(session.get_user(), session.get_language())
+        session_id = session.get_id()
+
+        with open(file_path, "a", encoding="utf-8") as f:
+            for item in stats:
+                line = "T|" + "|".join([
+                    str(session_id),
+                    item.get("word", ""),
+                    item.get("translation", ""),
+                    "1" if item.get("success") else "0",
+                    f"{item.get('recall_time'):.2f}" if item.get("recall_time") is not None else "",
+                    item.get("timestamp", datetime.now().isoformat(timespec="seconds")),
+                    item.get("direction", "")
+                ])
+                f.write(line + "\n")
+db = DBFile(config.FILE_NAMES, config.DICTIONARY_DATA, config.SESSIONS_DATA, config.STATS_DATA)
 
