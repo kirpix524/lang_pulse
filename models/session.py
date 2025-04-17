@@ -3,19 +3,20 @@ from datetime import datetime
 import random
 from utils.utils import parse_datetime
 from models.dictionary import Dictionary, Word
-
+from stats.stats import StatsRow
 
 class Training:
-    def __init__(self, direction: str, interval: float, words: list[Word], training_id: int):
+    def __init__(self, direction: str, interval: float, words: list[Word], training_id: int, session_id: int):
         self.__direction = direction
         self.__interval = interval
         self.__training_date_time = datetime.now()
         self.__training_id = training_id
+        self.__session_id = session_id
 
         self.__active_words = words.copy()
         random.shuffle(self.__active_words)
         self.__current_word = None
-        self.__stats: list[dict] = []
+        self.__stats: list[StatsRow] = []
 
     def get_direction(self):
         return self.__direction
@@ -47,14 +48,14 @@ class Training:
 
     def mark_remembered(self):
         word = self.__current_word
-        self.__fix_stats(word, True)
+        self.__fix_stats(word, True, self.__session_id ,self.__training_id)
         if word in self.__active_words:
             self.__active_words.remove(word)
         self.__current_word = None
 
     def mark_forgotten(self):
         word = self.__current_word
-        self.__fix_stats(word, False)
+        self.__fix_stats(word, False, self.__session_id ,self.__training_id)
         if word in self.__active_words:
             self.__active_words.remove(word)
             insert_pos = 3 + random.randint(0, 2)
@@ -63,7 +64,7 @@ class Training:
         self.__current_word = None
 
     def pop_word(self):
-        self.__fix_stats(self.__current_word, True)
+        self.__fix_stats(self.__current_word, True, self.__session_id ,self.__training_id)
         if self.__current_word in self.__active_words:
             self.__active_words.remove(self.__current_word)
         self.__current_word = None
@@ -78,21 +79,27 @@ class Training:
         if self.__current_word:
             self.__current_word.set_start_time(time.time())
 
-    def get_stats(self) -> list[dict]:
+    def get_stats(self) -> list[StatsRow]:
         return self.__stats
 
-    def __fix_stats(self, word: Word, success: bool):
+    def __fix_stats(self, word: Word, success: bool, session_id: int, training_id: int):
         if not word:
             return
+
         elapsed = time.time() - word.get_start_time() if success else None
-        self.__stats.append({
-            "word": word.word,
-            "translation": word.translation,
-            "success": success,
-            "recall_time": round(elapsed, 2) if elapsed is not None else None,
-            "timestamp": datetime.now().isoformat(timespec="seconds"),
-            "direction": self.__direction
-        })
+
+        stat = StatsRow(
+            word=word.word,
+            translation=word.translation,
+            session_id=session_id,
+            training_id=training_id,
+            success=success,
+            recall_time=round(elapsed, 2) if elapsed is not None else None,
+            timestamp=datetime.now().isoformat(timespec="seconds"),
+            direction=self.__direction
+        )
+
+        self.__stats.append(stat)
 
 
 class Session:
@@ -108,13 +115,13 @@ class Session:
 
     def add_new_training(self, direction: str, interval: float):
         new_training_id = 1 if not self.__trainings else self.__trainings[-1].get_id() + 1
-        training = Training(direction, interval, self.__words.copy(), new_training_id)
+        training = Training(direction, interval, self.__words.copy(), new_training_id, self.__session_id)
         self.__current_training = training
         self.__trainings.append(training)
         self.__last_repeated_at = training.get_training_date_time()
 
     def add_existing_training(self, direction: str, interval: float, training_id: int = None, training_date_time = None):
-        training = Training(direction, interval, [], training_id)
+        training = Training(direction, interval, [], training_id, self.__session_id)
         training.set_training_date_time(training_date_time)
         self.__trainings.append(training)
 

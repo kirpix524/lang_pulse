@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 
 CONFIG_PATH = "settings.json"
 with open(CONFIG_PATH, "r", encoding="utf-8") as config_file:
@@ -13,6 +14,9 @@ SESSIONS_DATA = {"DIRECTORY": config["sessions_directory"],
                 "FILE_NAME_PREFIX": config["sessions_file_name_prefix"]}
 STATS_DATA = {"DIRECTORY": config["stats_directory"],
               "FILE_NAME_PREFIX": config["stats_file_name_prefix"]}
+
+TRAINING_DIRECTIONS = config.get("training_directions", [])
+TrainingDirection = Enum("TrainingDirection", {name.upper(): name for name in TRAINING_DIRECTIONS})
 
 LOGS_DIRECTORY = config["logs_directory"]
 SCREEN_WIDTH = config["screen_settings"]["width"]

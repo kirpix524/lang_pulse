@@ -6,6 +6,8 @@ from models.dictionary import Word, Dictionary
 from models.session import Session, Training
 
 import storage.config as config
+from stats.stats import StatsRow
+
 
 class DataBase:
     def __init__(self):
@@ -44,7 +46,7 @@ class DataBase:
     def save_training_stats(self, session: Session, training: Training):
         pass
 
-    def load_training_stats(self):
+    def load_training_stats_words(self, dictionary: Dictionary, words: list[Word]):
         pass
 
 
@@ -204,7 +206,7 @@ class DBFile(DataBase):
         with open(dictionary_file_name, "w", encoding="utf-8") as file:
             for word in dictionary.get_words():
                 file.write(f"{word.word}|{word.translation}"
-                           f"|{word.transcription if word.transcription else ''}"
+                           f"|{word.__transcription if word.__transcription else ''}"
                            f"|{word.added_at if word.added_at else ''}"
                            f"|{word.last_repeated_at if word.last_repeated_at else ''}\n")
 
@@ -221,21 +223,60 @@ class DBFile(DataBase):
         """
         stats = training.get_stats()
         file_path = self.__get_stats_file_name(session.get_user(), session.get_language())
-        session_id = session.get_id()
-        training_id = training.get_id()
 
         with open(file_path, "a", encoding="utf-8") as f:
-            for item in stats:
+            for stat in stats:
                 line = "T|" + "|".join([
-                    str(session_id),
-                    str(training_id),
-                    item.get("word", ""),
-                    item.get("translation", ""),
-                    "1" if item.get("success") else "0",
-                    f"{item.get('recall_time'):.2f}" if item.get("recall_time") is not None else "",
-                    item.get("timestamp", datetime.now().isoformat(timespec="seconds")),
-                    item.get("direction", "")
+                    str(stat.session_id),
+                    str(stat.training_id),
+                    str(stat.word),
+                    str(stat.translation),
+                    "1" if stat.success else "0",
+                    f"{stat.recall_time:.2f}" if stat.recall_time is not None else "",
+                    str(stat.timestamp),
+                    str(stat.direction)
                 ])
                 f.write(line + "\n")
+
+    def load_training_stats_words(self, dictionary: Dictionary, words: list[Word]):
+        file_path = self.__get_stats_file_name(dictionary.get_user(), dictionary.get_language())
+        word_keys = {(w.word, w.translation) for w in words}
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if not line.startswith("T|"):
+                        continue
+                    parts = line.strip().split("|")
+                    if len(parts) < 8:
+                        continue
+                    # гарантируем, что будет 9 элементов
+                    _, session_id, training_id, word, translation, success, recall_time, timestamp, direction = (parts + [""] * 9)[:9]
+
+                    if (word, translation) not in word_keys:
+                        continue
+
+                    word_obj = dictionary.get_word(word, translation)
+                    if not word_obj:
+                        continue
+
+                    stat = StatsRow(
+                        word=word,
+                        translation=translation,
+                        session_id=int(session_id),
+                        training_id=int(training_id),
+                        success=(success == "1"),
+                        recall_time=float(recall_time) if recall_time else None,
+                        timestamp=timestamp,
+                        direction=direction
+                    )
+
+                    word_obj.add_stat(stat)
+
+        except FileNotFoundError:
+            print(f"Статистика не найдена: {file_path}")
+
+
+
 db = DBFile(config.FILE_NAMES, config.DICTIONARY_DATA, config.SESSIONS_DATA, config.STATS_DATA)
 

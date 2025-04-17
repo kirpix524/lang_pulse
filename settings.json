@@ -15,6 +15,11 @@
     "width" : 1280,
     "height" : 720
   },
+  "training_directions": [
+    "to_ru",
+    "to_foreign",
+    "rapid"
+  ],
   "login_screen_settings" :
   {
     "choose_user_spinner_text" : "Выберите пользователя",

@@ -15,6 +15,8 @@ from models.dictionary import Dictionary, Word
 from storage.db import db
 from storage.session_repo import SessionRepository
 from models.app import AppState
+from storage.config import TrainingDirection
+from stats.stats import StatsRow
 from datetime import datetime
 
 def show_message(title: str, message: str):
@@ -86,10 +88,10 @@ class ChooseWordsPopup(Popup):
             grid.add_widget(cb)
 
             grid.add_widget(Label(text=word.word))
-            grid.add_widget(Label(text=word.transcription or ''))
+            grid.add_widget(Label(text=word.get_transcription()))
             grid.add_widget(Label(text=word.translation))
-            grid.add_widget(Label(text=word.added_at.strftime('%Y-%m-%d %H:%M') if word.added_at else ''))
-            grid.add_widget(Label(text=word.last_repeated_at.strftime('%Y-%m-%d %H:%M') if word.last_repeated_at else ''))
+            grid.add_widget(Label(text=word.get_added_at().strftime('%Y-%m-%d %H:%M') if word.get_added_at() else ''))
+            grid.add_widget(Label(text=word.get_last_repeated_at().strftime('%Y-%m-%d %H:%M') if word.get_last_repeated_at() else ''))
 
     def select_words(self):
         selected = [word for word, cb in self.checkboxes.items() if cb.active]
@@ -97,6 +99,9 @@ class ChooseWordsPopup(Popup):
         self.dismiss()
 
 class DirectionSelectPopup(Popup):
+    to_ru = TrainingDirection.TO_RU
+    to_foreign = TrainingDirection.TO_FOREIGN
+    rapid = TrainingDirection.RAPID
     def __init__(self, on_selected, **kwargs):
         super().__init__(**kwargs)
         self.on_selected = on_selected
@@ -107,7 +112,7 @@ class DirectionSelectPopup(Popup):
             self.on_selected(direction)
 
 class SessionStatsPopup(Popup):
-    def __init__(self, stats: list[dict], on_dismiss=None, **kwargs):
+    def __init__(self, stats: list[StatsRow], on_dismiss=None, **kwargs):
         super().__init__(**kwargs)
         self.stats = stats
         self.populate_table()
@@ -128,15 +133,15 @@ class SessionStatsPopup(Popup):
             ))
 
         for row in self.stats:
-            if row['direction']=="rapid":
+            if row.direction==TrainingDirection.RAPID:
                 text_result = ""
             else:
                 text_result = "Правильно" if row["success"] else "Неправильно"
 
-            grid.add_widget(Label(text=row["word"], size_hint_x=None, size_hint_y=None, width=150, height=30))
-            grid.add_widget(Label(text=row["translation"], size_hint_x=None, size_hint_y=None, width=150, height=30))
+            grid.add_widget(Label(text=row.word, size_hint_x=None, size_hint_y=None, width=150, height=30))
+            grid.add_widget(Label(text=row.translation, size_hint_x=None, size_hint_y=None, width=150, height=30))
             grid.add_widget(Label(text=text_result, size_hint_x=None, size_hint_y=None, width=150, height=30))
-            grid.add_widget(Label(text=f"{row['recall_time']} сек" if row["recall_time"] else "-", size_hint_x=None, size_hint_y=None, width=100, height=30))
+            grid.add_widget(Label(text=f"{row.recall_time} сек" if row.recall_time else "-", size_hint_x=None, size_hint_y=None, width=100, height=30))
 
     def on_leave(self):
         if self.on_dismiss:
@@ -240,10 +245,10 @@ class DictionaryScreen(BaseScreen):
 
         for word in words:
             add_col_label(container, word.word)
-            add_col_label(container, f"[{word.transcription or ''}]")
+            add_col_label(container, f"[{word.get_transcription()}]")
             add_col_label(container, word.translation)
-            add_col_label(container, word.added_at.strftime('%d.%m.%Y %H:%M') if word.added_at else '')
-            add_col_label(container, word.last_repeated_at.strftime('%d.%m.%Y %H:%M') if word.last_repeated_at else '')
+            add_col_label(container, word.get_added_at().strftime('%d.%m.%Y %H:%M') if word.get_added_at() else '')
+            add_col_label(container, word.get_last_repeated_at().strftime('%d.%m.%Y %H:%M') if word.get_last_repeated_at() else '')
 
 class SessionListScreen(BaseScreen):
     """Экран списка тренировок"""
@@ -407,8 +412,7 @@ class SessionTrainingScreen(BaseScreen):
         db.save_training_stats(self.state.get_session(), training)
         db.save_all_sessions(self.state.get_dictionary(), self.state.get_session_repo().get_sessions())
         # Показать статистику
-        stats = training.get_stats()
-        popup = SessionStatsPopup(stats=stats, on_dismiss=self.goto_screen('session'))
+        popup = SessionStatsPopup(stats=training.get_stats(), on_dismiss=self.goto_screen('session'))
         popup.open()
 
     def next_step(self, *_):
@@ -427,12 +431,12 @@ class SessionTrainingScreen(BaseScreen):
 
         self.translation_visible = False
 
-        if training.get_direction() == "to_ru" or training.get_direction() == "rapid":
+        if training.get_direction() == TrainingDirection.TO_RU or training.get_direction() == TrainingDirection.RAPID:
             self.training_text = word.word
         else:
             self.training_text = word.translation
 
-        if training.get_direction() == "rapid":
+        if training.get_direction() == TrainingDirection.RAPID:
             self._tick = Clock.schedule_once(self.next_word, training.get_interval())
         else:
             self._tick = Clock.schedule_once(self.show_translation, training.get_interval())
@@ -444,7 +448,7 @@ class SessionTrainingScreen(BaseScreen):
         if not word or self.translation_visible:
             return
 
-        if training.get_direction() == "to_ru":
+        if training.get_direction() == TrainingDirection.TO_RU:
             self.training_text += f"\n[перевод: {word.translation}]"
         else:
             self.training_text += f"\n[перевод: {word.word}]"
@@ -469,7 +473,7 @@ class SessionTrainingScreen(BaseScreen):
             if self.translation_visible:  #Если показан перевод, значит ранее пользователь нажал пробел, при следующем нажатии идем к следующему слову
                 self.next_step()
                 return
-            if training.get_direction() == "rapid":
+            if training.get_direction() == TrainingDirection.RAPID:
                 training.pop_word()
                 self.next_step()
                 return
@@ -477,7 +481,7 @@ class SessionTrainingScreen(BaseScreen):
             self.next_step()
         elif key == 32:  # Space
             Clock.unschedule(self._tick)
-            if training.get_direction() == "rapid":
+            if training.get_direction() == TrainingDirection.RAPID:
                 training.pop_word()
                 self.next_step()
                 return
