@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 import random
 from utils.utils import parse_datetime
@@ -16,7 +17,7 @@ class Session:
 
         self.__active_words = []  # список слов в текущей тренировке
         self.__current_word = None
-        self.__word_stats: dict[str, dict] = {}
+        self.__stats: list[dict] = []
 
     # Тренировка
     def start_training(self, direction: str, interval: float):
@@ -34,17 +35,41 @@ class Session:
         self.__current_word = self.__active_words[0]
         return self.__current_word
 
+    def fix_stats(self, word, success: bool):
+        if word:
+            elapsed = time.time() - word.get_start_time()
+            if success:
+                recall_time = round(elapsed, 2)
+            else:
+                recall_time = None
+            self.__stats.append({
+                "word": word.word,
+                "translation": word.translation,
+                "success": success,
+                "recall_time": recall_time,
+                "timestamp": datetime.now().isoformat(timespec="seconds"),
+                "direction": self.__direction
+            })
+
     def mark_remembered(self):
+        word= self.__current_word
+        self.fix_stats(word, True)
         if self.__current_word in self.__active_words:
             self.__active_words.remove(self.__current_word)
         self.__current_word = None
 
     def mark_forgotten(self):
+        self.fix_stats(self.__current_word, False)
         if self.__current_word in self.__active_words:
             self.__active_words.remove(self.__current_word)
             insert_pos = 3 + random.randint(0, 2)
             insert_pos = min(insert_pos, len(self.__active_words))  # чтобы не выйти за пределы
             self.__active_words.insert(insert_pos, self.__current_word)
+        self.__current_word = None
+
+    def pop_word(self):
+        if self.__current_word in self.__active_words:
+            self.__active_words.remove(self.__current_word)
         self.__current_word = None
 
     def is_complete(self) -> bool:
@@ -53,6 +78,19 @@ class Session:
     def get_current_word(self) -> Word | None:
         return self.__current_word
 
+    def init_word_tracking(self):
+        if self.__current_word:
+            self.__current_word.set_start_time(time.time())
+
+    def mark_word_forgotten(self, word: Word):
+        self.__stats.append({
+            "word": word.word,
+            "translation": word.translation,
+            "success": False,
+            "recall_time": None,
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+            "direction": self.__direction
+        })
 
     def add_words(self, words: list[Word]):
         for word in words:

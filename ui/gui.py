@@ -1,4 +1,5 @@
 import random
+import time
 from kivy.core.window import Window
 from kivy.app import App
 from kivy.properties import StringProperty
@@ -277,8 +278,8 @@ class SessionScreen(BaseScreen):
     def start_session(self):
         interval_text = self.ids.interval_input.text.strip()
 
-        if not interval_text or not interval_text.isdigit():
-            show_message("Ошибка", "Введите корректный интервал в секундах")
+        if not interval_text:
+            show_message("Ошибка", "Введите интервал в секундах")
             return
 
         interval = float(interval_text)
@@ -370,15 +371,19 @@ class SessionTrainingScreen(BaseScreen):
         if not word:
             self.training_text = "⚠ Нет слов"
             return
+        else:
+            word.set_start_time(time.time())
 
         self.translation_visible = False
 
-        if session.get_direction() == "to_ru":
+        if session.get_direction() == "to_ru" or session.get_direction() == "rapid":
             self.training_text = word.word
         else:
             self.training_text = word.translation
-
-        self._tick = Clock.schedule_once(self.show_translation, session.get_interval())
+        if session.get_direction() == "rapid":
+            self._tick = Clock.schedule_once(self.next_word, session.get_interval())
+        else:
+            self._tick = Clock.schedule_once(self.show_translation, session.get_interval())
 
     def show_translation(self, *_):
         session = self.state.get_session()
@@ -398,16 +403,34 @@ class SessionTrainingScreen(BaseScreen):
         session.mark_forgotten()
         Clock.schedule_once(self.next_step, 2)
 
+    def next_word(self, *_):
+        self.state.get_session().pop_word()
+        self.next_step()
+
     def _on_key_down(self, window, key, scancode, codepoint, modifiers):
         if self.state.get_session().is_complete():
             return
 
         if key == 13:  # Enter
             Clock.unschedule(self._tick)
+            if self.translation_visible:  #Если показан перевод, значит ранее пользователь нажал пробел, при следующем нажатии идем к следующему слову
+                self.next_step()
+                return
+            if self.state.get_session().get_direction() == "rapid":
+                self.state.get_session().pop_word()
+                self.next_step()
+                return
             self.state.get_session().mark_remembered()
             self.next_step()
         elif key == 32:  # Space
             Clock.unschedule(self._tick)
+            if self.state.get_session().get_direction() == "rapid":
+                self.state.get_session().pop_word()
+                self.next_step()
+                return
+            if self.translation_visible:  #Если показан перевод, значит ранее пользователь нажал пробел, при следующем нажатии идем к следующему слову
+                self.next_step()
+                return
             self.show_translation()
 
 

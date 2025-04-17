@@ -14,6 +14,13 @@ class Word:
         # Преобразование строк в datetime, если они заданы как строки
         self.added_at = parse_datetime(added_at)
         self.last_repeated_at = parse_datetime(last_repeated_at)
+        self.__start_time = None
+
+    def get_start_time(self):
+        return self.__start_time
+
+    def set_start_time(self, start_time):
+        self.__start_time = start_time
 
 
 class Dictionary:
