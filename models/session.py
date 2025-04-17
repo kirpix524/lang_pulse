@@ -42,14 +42,15 @@ class Session:
                 recall_time = round(elapsed, 2)
             else:
                 recall_time = None
-            self.__stats.append({
+            stats_row = {
                 "word": word.word,
                 "translation": word.translation,
                 "success": success,
                 "recall_time": recall_time,
                 "timestamp": datetime.now().isoformat(timespec="seconds"),
                 "direction": self.__direction
-            })
+            }
+            self.__stats.append(stats_row)
 
     def mark_remembered(self):
         word= self.__current_word
@@ -68,6 +69,7 @@ class Session:
         self.__current_word = None
 
     def pop_word(self):
+        self.fix_stats(self.__current_word, True)
         if self.__current_word in self.__active_words:
             self.__active_words.remove(self.__current_word)
         self.__current_word = None
@@ -82,15 +84,8 @@ class Session:
         if self.__current_word:
             self.__current_word.set_start_time(time.time())
 
-    def mark_word_forgotten(self, word: Word):
-        self.__stats.append({
-            "word": word.word,
-            "translation": word.translation,
-            "success": False,
-            "recall_time": None,
-            "timestamp": datetime.now().isoformat(timespec="seconds"),
-            "direction": self.__direction
-        })
+    def get_stats(self) -> list[dict]:
+        return self.__stats
 
     def add_words(self, words: list[Word]):
         for word in words:

@@ -1,0 +1,28 @@
+<SessionStatsPopup>:
+    title: "Статистика тренировки"
+    size_hint: 0.95, 0.85
+    auto_dismiss: True
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        ScrollView:
+            do_scroll_x: True
+            do_scroll_y: True
+
+            GridLayout:
+                id: stats_grid
+                cols: 4
+                spacing: 5
+                size_hint_y: None
+                height: self.minimum_height
+                size_hint_x: None
+                width: self.minimum_width  # важно!
+
+        Button:
+            text: "Закрыть"
+            size_hint_y: None
+            height: 40
+            on_press: root.dismiss()

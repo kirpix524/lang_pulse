@@ -106,7 +106,41 @@ class DirectionSelectPopup(Popup):
         if self.on_selected:
             self.on_selected(direction)
 
+class SessionStatsPopup(Popup):
+    def __init__(self, stats: list[dict], on_dismiss=None, **kwargs):
+        super().__init__(**kwargs)
+        self.stats = stats
+        self.populate_table()
 
+    def populate_table(self):
+        grid = self.ids.stats_grid
+        grid.clear_widgets()
+
+        # Заголовки
+        headers = ["Слово", "Перевод", "Результат", "Время"]
+        for header in headers:
+            grid.add_widget(Label(
+                text=header,
+                bold=True,
+                color=(0, 0, 0, 1),
+                size_hint_y=None,
+                height=30
+            ))
+
+        for row in self.stats:
+            if row['direction']=="rapid":
+                text_result = ""
+            else:
+                text_result = "Правильно" if row["success"] else "Неправильно"
+
+            grid.add_widget(Label(text=row["word"], size_hint_x=None, size_hint_y=None, width=150, height=30))
+            grid.add_widget(Label(text=row["translation"], size_hint_x=None, size_hint_y=None, width=150, height=30))
+            grid.add_widget(Label(text=text_result, size_hint_x=None, size_hint_y=None, width=150, height=30))
+            grid.add_widget(Label(text=f"{row['recall_time']} сек" if row["recall_time"] else "-", size_hint_x=None, size_hint_y=None, width=100, height=30))
+
+    def on_leave(self):
+        if self.on_dismiss:
+            self.on_dismiss()
 class BaseScreen(Screen):
     current_user_name = StringProperty('')
     current_language_name = StringProperty('')
@@ -168,7 +202,6 @@ class RegisterScreen(BaseScreen):
                 show_message("Ошибка","Такое имя пользователя уже есть")
         else:
             show_message("Ошибка","Введите имя пользователя")
-
 
 # Главное меню
 class MainMenuScreen(BaseScreen):
@@ -360,11 +393,21 @@ class SessionTrainingScreen(BaseScreen):
         session.start_training(direction, interval)
         self.next_step()
 
+    def finish_training(self):
+        Window.unbind(on_key_down=self._on_key_down)
+        self.training_text = "🎉 Тренировка завершена"
+        session = self.state.get_session()
+
+        # Показать статистику
+        stats = session.get_stats()
+        popup = SessionStatsPopup(stats=stats, on_dismiss=self.goto_screen('session'))
+        popup.open()
+
     def next_step(self, *_):
         session = self.state.get_session()
 
         if session.is_complete():
-            self.training_text = "🎉 Тренировка завершена"
+            self.finish_training()
             return
 
         word = session.get_next_word()
@@ -380,6 +423,7 @@ class SessionTrainingScreen(BaseScreen):
             self.training_text = word.word
         else:
             self.training_text = word.translation
+
         if session.get_direction() == "rapid":
             self._tick = Clock.schedule_once(self.next_word, session.get_interval())
         else:
@@ -401,7 +445,7 @@ class SessionTrainingScreen(BaseScreen):
 
         # Переместить слово назад в списке
         session.mark_forgotten()
-        Clock.schedule_once(self.next_step, 2)
+        self._tick = Clock.schedule_once(self.next_step, 2)
 
     def next_word(self, *_):
         self.state.get_session().pop_word()
@@ -450,6 +494,7 @@ class LangPulseApp(App):
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}add_new_word_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}choose_words_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}direction_select_popup.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_stats_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_training.kv")
         self.sm.add_widget(LoginScreen(name='login'))
