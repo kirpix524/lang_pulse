@@ -8,7 +8,7 @@
         padding: 20
 
         Button:
-            text: 'Новая тренировка'
+            text: 'Новая сессия'
             size_hint: None, None
             size: 160, 40
             on_press: root.new_session()
@@ -19,7 +19,7 @@
         padding: 20
 
         Label:
-            text: 'Список тренировок'
+            text: 'Список сессий'
             font_size: '24sp'
             color: 0, 0, 0, 1
             size_hint_y: None
@@ -37,7 +37,7 @@
 
             GridLayout:
                 id: sessions_container
-                cols: 3
+                cols: 4
                 spacing: 10
                 size_hint_y: None
                 padding: 5

@@ -3,8 +3,7 @@ from datetime import datetime
 from models.language import Language
 from models.user import User
 from models.dictionary import Word, Dictionary
-from models.session import Session
-
+from models.session import Session, Training
 
 import storage.config as config
 
@@ -42,7 +41,7 @@ class DataBase:
     def save_session(self, session: Session) -> None:
         pass
 
-    def save_training_stats(self, session: Session):
+    def save_training_stats(self, session: Session, training: Training):
         pass
 
     def load_training_stats(self):
@@ -142,6 +141,15 @@ class DBFile(DataBase):
                         word = dictionary.get_word(term, translation)
                         if word and session_id in sessions:
                             sessions[session_id].add_words([word])
+                    elif record_type == "T" and len(parts) >= 6:
+                        session_id = int(parts[1])
+                        training_id = int(parts[2])
+                        direction = parts[3]
+                        interval = float(parts[4])
+                        training_date_time = parts[5]
+
+                        if session_id in sessions:
+                            sessions[session_id].add_existing_training(direction, interval, training_id, training_date_time)
 
         except FileNotFoundError:
             print(f"Файл {sessions_file} не найден. Будет создан при сохранении.")
@@ -159,6 +167,11 @@ class DBFile(DataBase):
                 for word in session.get_words():
                     file.write(
                         f"W|{session.get_id()}|{word.word}|{word.translation}\n"
+                    )
+                for training in session.get_trainings():
+                    file.write(
+                        f"T|{session.get_id()}|{training.get_id()}|{training.get_direction()}|"
+                        f"{training.get_interval()}|{training.get_training_date_time()}\n"
                     )
 
     def __get_dictionary_file_name(self, user: User, language: Language) -> str:
@@ -201,19 +214,21 @@ class DBFile(DataBase):
         Path(file_path).parent.mkdir(parents=True, exist_ok=True)
         return file_path
 
-    def save_training_stats(self, session: Session):
+    def save_training_stats(self, session: Session, training: Training):
         """
         Сохраняет статистику тренировки в файл. Каждый элемент stats — это словарь с ключами:
         word, translation, success, recall_time, timestamp, direction
         """
-        stats = session.get_stats()
+        stats = training.get_stats()
         file_path = self.__get_stats_file_name(session.get_user(), session.get_language())
         session_id = session.get_id()
+        training_id = training.get_id()
 
         with open(file_path, "a", encoding="utf-8") as f:
             for item in stats:
                 line = "T|" + "|".join([
                     str(session_id),
+                    str(training_id),
                     item.get("word", ""),
                     item.get("translation", ""),
                     "1" if item.get("success") else "0",

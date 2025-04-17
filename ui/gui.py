@@ -280,12 +280,13 @@ class SessionListScreen(BaseScreen):
         add_col_label(container, session.get_created_at().strftime('%d.%m.%Y %H:%M'))
         add_col_label(container, session.get_last_repeated_at().strftime(
             '%d.%m.%Y %H:%M') if session.get_last_repeated_at() else '')
+        add_col_label(container, str(session.get_total_trainings()) )
 
     def show_sessions(self):
         """Вывод на экран списка тренировок"""
         container = self.ids.sessions_container
         container.clear_widgets()
-        headers = ["Тренировка", "Добавлено", "Последнее повторение"]
+        headers = ["Сессия", "Добавлено", "Последнее повторение", "Всего тренировок"]
         for title in headers:
             add_col_label(container, title)
 
@@ -309,7 +310,7 @@ class SessionScreen(BaseScreen):
         for word in session.get_words():
             add_col_label(self.ids.words_container, word.word)
 
-    def start_session(self):
+    def start_training(self):
         interval_text = self.ids.interval_input.text.strip()
 
         if not interval_text:
@@ -323,9 +324,10 @@ class SessionScreen(BaseScreen):
             show_message("Ошибка", "Добавьте не менее 5 слов в тренировку")
             return
 
+
+
         def on_direction_chosen(direction):
-            session.set_interval(interval)
-            session.set_direction(direction)
+            session.add_new_training(direction, interval)
             self.goto_screen('session_training')
 
         popup = DirectionSelectPopup(on_selected=on_direction_chosen)
@@ -333,8 +335,12 @@ class SessionScreen(BaseScreen):
 
     def add_words_to_session(self):
         # Реализация добавления слова в тренировку
-        dictionary = self.state.get_dictionary()
         session = self.state.get_session()
+        if not session.can_be_changed():
+            show_message("Ошибка", "Эта тренировка уже запускалась и ее нельзя изменять")
+            return
+        dictionary = self.state.get_dictionary()
+
 
         if not dictionary or not session:
             show_message("Ошибка", "Словарь или тренировка не найдены")
@@ -352,6 +358,9 @@ class SessionScreen(BaseScreen):
     def remove_words_from_session(self):
         # Реализация удаления слова из тренировки
         session = self.state.get_session()
+        if not session.can_be_changed():
+            show_message("Ошибка", "Эта тренировка уже запускалась и ее нельзя изменять")
+            return
 
         if not session:
             show_message("Ошибка", "Словарь или тренировка не найдены")
@@ -360,7 +369,7 @@ class SessionScreen(BaseScreen):
 
         def on_deleted(words):
             session.del_words(words)
-            db.save_all_sessions()
+            db.save_all_sessions(self.state.get_dictionary(), self.state.get_session_repo().get_sessions())
             self.show_words()
 
         popup = ChooseWordsPopup(words=available_words, on_words_selected=on_deleted)
@@ -387,32 +396,29 @@ class SessionTrainingScreen(BaseScreen):
             Clock.unschedule(self._tick)
 
     def start_training(self):
-        session = self.state.get_session()
-        interval = session.get_interval() or 3
-        direction = session.get_direction() or "to_ru"
-
-        session.start_training(direction, interval)
         self.next_step()
 
     def finish_training(self):
         Window.unbind(on_key_down=self._on_key_down)
         self.training_text = "🎉 Тренировка завершена"
-        session = self.state.get_session()
+        training = self.state.get_session().get_current_training()
+        self.state.get_session().set_last_repeated_at(training.get_training_date_time())
         # Сохранить статистику
-        db.save_training_stats(session)
+        db.save_training_stats(self.state.get_session(), training)
+        db.save_all_sessions(self.state.get_dictionary(), self.state.get_session_repo().get_sessions())
         # Показать статистику
-        stats = session.get_stats()
+        stats = training.get_stats()
         popup = SessionStatsPopup(stats=stats, on_dismiss=self.goto_screen('session'))
         popup.open()
 
     def next_step(self, *_):
-        session = self.state.get_session()
+        training = self.state.get_session().get_current_training()
 
-        if session.is_complete():
+        if training.is_complete():
             self.finish_training()
             return
 
-        word = session.get_next_word()
+        word = training.get_next_word()
         if not word:
             self.training_text = "⚠ Нет слов"
             return
@@ -421,24 +427,24 @@ class SessionTrainingScreen(BaseScreen):
 
         self.translation_visible = False
 
-        if session.get_direction() == "to_ru" or session.get_direction() == "rapid":
+        if training.get_direction() == "to_ru" or training.get_direction() == "rapid":
             self.training_text = word.word
         else:
             self.training_text = word.translation
 
-        if session.get_direction() == "rapid":
-            self._tick = Clock.schedule_once(self.next_word, session.get_interval())
+        if training.get_direction() == "rapid":
+            self._tick = Clock.schedule_once(self.next_word, training.get_interval())
         else:
-            self._tick = Clock.schedule_once(self.show_translation, session.get_interval())
+            self._tick = Clock.schedule_once(self.show_translation, training.get_interval())
 
     def show_translation(self, *_):
-        session = self.state.get_session()
-        word = session.get_current_word()
+        training = self.state.get_session().get_current_training()
+        word = training.get_current_word()
 
         if not word or self.translation_visible:
             return
 
-        if session.get_direction() == "to_ru":
+        if training.get_direction() == "to_ru":
             self.training_text += f"\n[перевод: {word.translation}]"
         else:
             self.training_text += f"\n[перевод: {word.word}]"
@@ -446,15 +452,16 @@ class SessionTrainingScreen(BaseScreen):
         self.translation_visible = True
 
         # Переместить слово назад в списке
-        session.mark_forgotten()
+        training.mark_forgotten()
         self._tick = Clock.schedule_once(self.next_step, 2)
 
     def next_word(self, *_):
-        self.state.get_session().pop_word()
+        self.state.get_session().get_current_training().pop_word()
         self.next_step()
 
     def _on_key_down(self, window, key, scancode, codepoint, modifiers):
-        if self.state.get_session().is_complete():
+        training = self.state.get_session().get_current_training()
+        if training.is_complete():
             return
 
         if key == 13:  # Enter
@@ -462,16 +469,16 @@ class SessionTrainingScreen(BaseScreen):
             if self.translation_visible:  #Если показан перевод, значит ранее пользователь нажал пробел, при следующем нажатии идем к следующему слову
                 self.next_step()
                 return
-            if self.state.get_session().get_direction() == "rapid":
-                self.state.get_session().pop_word()
+            if training.get_direction() == "rapid":
+                training.pop_word()
                 self.next_step()
                 return
-            self.state.get_session().mark_remembered()
+            training.mark_remembered()
             self.next_step()
         elif key == 32:  # Space
             Clock.unschedule(self._tick)
-            if self.state.get_session().get_direction() == "rapid":
-                self.state.get_session().pop_word()
+            if training.get_direction() == "rapid":
+                training.pop_word()
                 self.next_step()
                 return
             if self.translation_visible:  #Если показан перевод, значит ранее пользователь нажал пробел, при следующем нажатии идем к следующему слову
