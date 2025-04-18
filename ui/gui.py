@@ -2,7 +2,7 @@ import random
 import time
 from kivy.core.window import Window
 from kivy.app import App
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, NumericProperty
 from kivy.uix.popup import Popup
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -10,6 +10,9 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
 from kivy.clock import Clock
+from kivy.uix.widget import Widget
+from kivy.graphics import Color, Rectangle, RoundedRectangle
+
 import storage.config as config
 from models.dictionary import Dictionary, Word
 from storage.db import db
@@ -37,6 +40,59 @@ def add_col_label(container, title: str):
     ))
 
 
+class TimerBar(Widget):
+    progress = NumericProperty(1.0)  # от 1.0 до 0.0
+
+    __events__ = ("on_complete",)  # 👈 регистрация пользовательского события
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._event = None
+        self._remaining = None
+        self._interval = None
+        with self.canvas.before:
+            self.color = Color(0, 1, 0, 1)  # зелёный
+            self.rect = RoundedRectangle (pos=self.pos, size=self.size)
+
+        self.bind(pos=self._update_rect, size=self._update_rect, progress=self._update_rect)
+
+    def _update_rect(self, *args):
+        full_width = self.width
+        self.rect.pos = self.pos
+        self.rect.size = (full_width * self.progress, self.height)
+        # Обновим цвет: от зелёного к жёлтому, затем к красному
+        if self.progress > 0.5:
+            # от зелёного (0,1,0) к жёлтому (1,1,0)
+            r = 2 * (1 - self.progress)
+            self.color.rgba = (r, 1, 0, 1)
+        else:
+            # от жёлтого (1,1,0) к красному (1,0,0)
+            g = 2 * self.progress
+            self.color.rgba = (1, g, 0, 1)
+
+    def start(self, interval: float):
+        self.progress = 1.0
+        self._interval = interval
+        self._remaining = interval
+        self._event = Clock.schedule_interval(self._tick, 0.05)
+
+    def stop(self):
+        if hasattr(self, '_event') and self._event:
+            self._event.cancel()
+
+    def _tick(self, dt):
+        self._remaining -= dt
+        self.progress = max(0, self._remaining / self._interval)
+        if self._remaining <= 0:
+            self._event.cancel()
+            self.dispatch("on_complete")
+
+    def on_complete(self):
+        pass  # перехватывается в родителе, если нужно
+
+    def cancel(self):
+        if hasattr(self, '_event') and self._event:
+            self._event.cancel()
 
 class MessagePopup(Popup):
     def set_message(self, message):
@@ -136,7 +192,7 @@ class SessionStatsPopup(Popup):
             if row.direction==TrainingDirection.RAPID:
                 text_result = ""
             else:
-                text_result = "Правильно" if row["success"] else "Неправильно"
+                text_result = "Правильно" if row.success else "Неправильно"
 
             grid.add_widget(Label(text=row.word, size_hint_x=None, size_hint_y=None, width=150, height=30))
             grid.add_widget(Label(text=row.translation, size_hint_x=None, size_hint_y=None, width=150, height=30))
@@ -386,6 +442,8 @@ class SessionTrainingScreen(BaseScreen):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.remaining_time = None
+        self._progress_event = None
         self._tick = None
 
     def on_pre_enter(self):
@@ -399,6 +457,7 @@ class SessionTrainingScreen(BaseScreen):
         self.translation_visible = False
         if self._tick:
             Clock.unschedule(self._tick)
+        self.stop_pb_timer()
 
     def start_training(self):
         self.next_step()
@@ -438,8 +497,10 @@ class SessionTrainingScreen(BaseScreen):
 
         if training.get_direction() == TrainingDirection.RAPID:
             self._tick = Clock.schedule_once(self.next_word, training.get_interval())
+            self.start_pb_timer(training.get_interval())
         else:
             self._tick = Clock.schedule_once(self.show_translation, training.get_interval())
+            self.start_pb_timer(training.get_interval())
 
     def show_translation(self, *_):
         training = self.state.get_session().get_current_training()
@@ -470,6 +531,7 @@ class SessionTrainingScreen(BaseScreen):
 
         if key == 13:  # Enter
             Clock.unschedule(self._tick)
+            self.stop_pb_timer()
             if self.translation_visible:  #Если показан перевод, значит ранее пользователь нажал пробел, при следующем нажатии идем к следующему слову
                 self.next_step()
                 return
@@ -481,6 +543,7 @@ class SessionTrainingScreen(BaseScreen):
             self.next_step()
         elif key == 32:  # Space
             Clock.unschedule(self._tick)
+            self.stop_pb_timer()
             if training.get_direction() == TrainingDirection.RAPID:
                 training.pop_word()
                 self.next_step()
@@ -490,6 +553,11 @@ class SessionTrainingScreen(BaseScreen):
                 return
             self.show_translation()
 
+    def start_pb_timer(self, interval):
+        self.ids.timer_bar.start(interval)
+
+    def stop_pb_timer(self):
+        self.ids.timer_bar.stop()
 
 # Менеджер экранов
 class LangPulseApp(App):
