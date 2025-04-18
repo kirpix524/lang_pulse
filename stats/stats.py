@@ -1,4 +1,5 @@
 from datetime import datetime
+from storage.config import TrainingDirection, get_direction_name
 
 class StatsRow:
     def __init__(
@@ -10,7 +11,7 @@ class StatsRow:
         success: bool,
         recall_time: float | None,
         timestamp: str,
-        direction: str
+        direction: TrainingDirection
     ):
         self.word = word
         self.translation = translation
@@ -30,7 +31,7 @@ class StatsRow:
             "success": self.success,
             "recall_time": self.recall_time,
             "timestamp": self.timestamp,
-            "direction": self.direction
+            "direction": self.direction.value if self.direction else ''
         }
 
     @staticmethod
@@ -43,5 +44,17 @@ class StatsRow:
             success=bool(data.get("success")),
             recall_time=float(data.get("recall_time")) if data.get("recall_time") not in (None, "") else None,
             timestamp=data.get("timestamp", datetime.now().isoformat(timespec="seconds")),
-            direction=data.get("direction", "")
+            direction=TrainingDirection(data.get("direction", "")) if data.get("direction") else None
         )
+
+    def get_direction_value(self) -> str:
+        if self.direction:
+            return self.direction.value
+        else:
+            return ""
+
+    def get_direction_name(self) -> str:
+        if self.direction:
+            return get_direction_name(self.direction)
+        else:
+            return ''

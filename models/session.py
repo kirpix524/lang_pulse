@@ -4,9 +4,10 @@ import random
 from utils.utils import parse_datetime
 from models.dictionary import Dictionary, Word
 from stats.stats import StatsRow
+from storage.config import TrainingDirection
 
 class Training:
-    def __init__(self, direction: str, interval: float, words: list[Word], training_id: int, session_id: int):
+    def __init__(self, direction: TrainingDirection, interval: float, words: list[Word], training_id: int, session_id: int):
         self.__direction = direction
         self.__interval = interval
         self.__training_date_time = datetime.now()
@@ -21,7 +22,10 @@ class Training:
     def get_direction(self):
         return self.__direction
 
-    def set_direction(self, direction):
+    def get_direction_value(self):
+        return self.__direction.value if self.__direction else ''
+
+    def set_direction(self, direction: TrainingDirection):
         self.__direction = direction
 
     def get_interval(self):
@@ -113,14 +117,14 @@ class Session:
 
         self.__current_training = None
 
-    def add_new_training(self, direction: str, interval: float):
+    def add_new_training(self, direction: TrainingDirection, interval: float):
         new_training_id = 1 if not self.__trainings else self.__trainings[-1].get_id() + 1
         training = Training(direction, interval, self.__words.copy(), new_training_id, self.__session_id)
         self.__current_training = training
         self.__trainings.append(training)
         self.__last_repeated_at = training.get_training_date_time()
 
-    def add_existing_training(self, direction: str, interval: float, training_id: int = None, training_date_time = None):
+    def add_existing_training(self, direction: TrainingDirection, interval: float, training_id: int = None, training_date_time = None):
         training = Training(direction, interval, [], training_id, self.__session_id)
         training.set_training_date_time(training_date_time)
         self.__trainings.append(training)

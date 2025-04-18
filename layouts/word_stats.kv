@@ -1,0 +1,43 @@
+<WordStatsScreen>:
+    ScreenBackground
+    UserInfoPanel
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            text: 'Статистика по словам'
+            font_size: '24sp'
+            size_hint_y: None
+            height: 40
+            color: 0, 0, 0, 1
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40
+            spacing: 10
+
+            Button:
+                text: 'Добавить слова'
+                on_press: root.add_words_for_stats()
+
+            Button:
+                text: 'Удалить слова'
+                on_press: root.remove_words_for_stats()
+
+        ScrollView:
+            GridLayout:
+                id: stats_container
+                cols: 1
+                spacing: 5
+                size_hint_y: None
+                height: self.minimum_height
+
+        Button:
+            text: 'Назад'
+            size_hint_y: None
+            height: 40
+            on_press: root.goto_screen('main_menu')

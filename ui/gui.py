@@ -1,8 +1,9 @@
-import random
+from screeninfo import get_monitors
 import time
 from kivy.core.window import Window
 from kivy.app import App
 from kivy.properties import StringProperty, NumericProperty
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -11,10 +12,10 @@ from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
-from kivy.graphics import Color, Rectangle, RoundedRectangle
+from kivy.graphics import Color, RoundedRectangle
 
 import storage.config as config
-from models.dictionary import Dictionary, Word
+from models.dictionary import Word
 from storage.db import db
 from storage.session_repo import SessionRepository
 from models.app import AppState
@@ -206,6 +207,7 @@ class SessionStatsPopup(Popup):
 class BaseScreen(Screen):
     current_user_name = StringProperty('')
     current_language_name = StringProperty('')
+
     def on_pre_enter(self):
         if self.state.get_user():
             self.current_user_name = self.state.get_user().username or ''
@@ -470,6 +472,7 @@ class SessionTrainingScreen(BaseScreen):
         # Сохранить статистику
         db.save_training_stats(self.state.get_session(), training)
         db.save_all_sessions(self.state.get_dictionary(), self.state.get_session_repo().get_sessions())
+        self.state.get_dictionary().update_training_stats(training.get_stats())
         # Показать статистику
         popup = SessionStatsPopup(stats=training.get_stats(), on_dismiss=self.goto_screen('session'))
         popup.open()
@@ -559,6 +562,88 @@ class SessionTrainingScreen(BaseScreen):
     def stop_pb_timer(self):
         self.ids.timer_bar.stop()
 
+class WordStatsScreen(BaseScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.__words_for_stats: list[Word] = []
+        self.__stats_user = None
+        self.__stats_language = None
+
+
+    def on_pre_enter(self):
+        super().on_pre_enter()
+        if self.__stats_user != self.state.get_user() or self.__stats_language != self.state.get_language():
+            self.__words_for_stats.clear()
+            self.__stats_user = self.state.get_user()
+            self.__stats_language = self.state.get_language()
+        self.show_stats()
+
+    def add_words_for_stats(self):
+        dictionary = self.state.get_dictionary()
+        if not dictionary:
+            return
+
+        available_words = [w for w in dictionary.get_words() if w not in self.__words_for_stats]
+
+        def on_added(words):
+            self.__words_for_stats.extend(words)
+            self.show_stats()
+
+        popup = ChooseWordsPopup(words=available_words, on_words_selected=on_added)
+        popup.open()
+
+    def remove_words_for_stats(self):
+        if not self.__words_for_stats:
+            return
+
+        def on_removed(words):
+            for w in words:
+                if w in self.__words_for_stats:
+                    self.__words_for_stats.remove(w)
+            self.show_stats()
+
+        popup = ChooseWordsPopup(words=self.__words_for_stats, on_words_selected=on_removed)
+        popup.open()
+
+    def show_stats(self):
+        container = self.ids.stats_container
+        container.clear_widgets()
+
+        header = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, spacing=5)
+        header.add_widget(Label(text="Результат", font_size='22sp', bold=True, color=(0, 0, 0, 1), size_hint_x=None, width=100))
+        header.add_widget(Label(text="Время", font_size='22sp', bold=True, color=(0, 0, 0, 1), size_hint_x=None, width=100))
+        header.add_widget(Label(text="Дата", font_size='22sp', bold=True, color=(0, 0, 0, 1), size_hint_x=None, width=140))
+        header.add_widget(Label(text="Направление", font_size='22sp', bold=True, color=(0, 0, 0, 1), size_hint_x=None, width=80))
+        container.add_widget(header)
+
+        for word in self.__words_for_stats:
+            stats = word.get_stats()
+            if not stats:
+                continue
+
+            container.add_widget(self.create_word_row(word))
+            for stat in stats:
+                container.add_widget(self.create_stat_row(stat))
+
+    def create_word_row(self, word: Word):
+        row = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, spacing=5)
+
+        row.add_widget(Label(text=word.word, font_size='18sp', bold=True, color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
+        row.add_widget(Label(text=word.translation, font_size='18sp', bold=True, color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
+        row.add_widget(Label(text='', size_hint_x=None, width=140, size_hint_y=None, height=30))
+        row.add_widget(Label(text='', size_hint_x=None, width=80, size_hint_y=None, height=30))
+        return row
+
+    def create_stat_row(self, stat: StatsRow):
+        row = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, spacing=5)
+
+        row.add_widget(Label(text="Правильно" if stat.success else "Неправильно", color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
+        row.add_widget(Label(text=f"{stat.recall_time}s" if stat.recall_time else "-", color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
+        row.add_widget(Label(text=stat.timestamp.replace("T", " "), color=(0, 0, 0, 1), size_hint_x=None, width=140, size_hint_y=None, height=30))
+        row.add_widget(Label(text=stat.get_direction_name(), color=(0, 0, 0, 1), size_hint_x=None, width=80))
+
+        return row
+
 # Менеджер экранов
 class LangPulseApp(App):
     def build(self):
@@ -578,6 +663,7 @@ class LangPulseApp(App):
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_stats_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_training.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}word_stats.kv")
         self.sm.add_widget(LoginScreen(name='login'))
         self.sm.add_widget(RegisterScreen(name='register'))
         self.sm.add_widget(MainMenuScreen(name='main_menu'))
@@ -585,6 +671,12 @@ class LangPulseApp(App):
         self.sm.add_widget(SessionListScreen(name='session_list'))
         self.sm.add_widget(SessionScreen(name='session'))
         self.sm.add_widget(SessionTrainingScreen(name='session_training'))
+        self.sm.add_widget(WordStatsScreen(name='word_stats'))
 
+        monitors = get_monitors()
+        if len(monitors) >= 2:
+            second = monitors[1]
+            Window.left = second.x - 2100
+            Window.top = second.y
         Window.size = (config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
         return self.sm

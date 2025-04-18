@@ -20,6 +20,11 @@
     "to_foreign",
     "rapid"
   ],
+  "training_directions_names": {
+    "to_ru": "На русский",
+    "to_foreign": "На иностранный",
+    "rapid": "Прогонка"
+  },
   "login_screen_settings" :
   {
     "choose_user_spinner_text" : "Выберите пользователя",

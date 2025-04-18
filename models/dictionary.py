@@ -80,3 +80,10 @@ class Dictionary:
             if w.word == word.word and w.translation == word.translation:
                 return  # Не добавляем дубликат
         self.__words.append(word)
+
+    def update_training_stats(self, stats: list[StatsRow]):
+        for stat in stats:
+            word = self.get_word(str(stat.word),str(stat.translation))
+            if not word:
+                continue
+            word.add_stat(stat)

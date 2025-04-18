@@ -4,6 +4,7 @@ from models.language import Language
 from models.user import User
 from models.dictionary import Word, Dictionary
 from models.session import Session, Training
+from storage.config import TrainingDirection
 
 import storage.config as config
 from stats.stats import StatsRow
@@ -46,7 +47,7 @@ class DataBase:
     def save_training_stats(self, session: Session, training: Training):
         pass
 
-    def load_training_stats_words(self, dictionary: Dictionary, words: list[Word]):
+    def load_training_stats_words(self, dictionary: Dictionary):
         pass
 
 
@@ -146,7 +147,7 @@ class DBFile(DataBase):
                     elif record_type == "T" and len(parts) >= 6:
                         session_id = int(parts[1])
                         training_id = int(parts[2])
-                        direction = parts[3]
+                        direction = TrainingDirection(parts[3])
                         interval = float(parts[4])
                         training_date_time = parts[5]
 
@@ -172,7 +173,7 @@ class DBFile(DataBase):
                     )
                 for training in session.get_trainings():
                     file.write(
-                        f"T|{session.get_id()}|{training.get_id()}|{training.get_direction()}|"
+                        f"T|{session.get_id()}|{training.get_id()}|{training.get_direction_value()}|"
                         f"{training.get_interval()}|{training.get_training_date_time()}\n"
                     )
 
@@ -195,8 +196,8 @@ class DBFile(DataBase):
                     words.append(Word(word, translation, transcription, added_at, last_repeated_at))
         except FileNotFoundError:
             print(f"Файл {dictionary_file_name} не найден. Будет создан при сохранении.")
-
         dictionary.set_words(words)
+        self.load_training_stats_words(dictionary)
         return dictionary
 
     def save_dictionary(self, dictionary: Dictionary) -> None:
@@ -234,12 +235,19 @@ class DBFile(DataBase):
                     "1" if stat.success else "0",
                     f"{stat.recall_time:.2f}" if stat.recall_time is not None else "",
                     str(stat.timestamp),
-                    str(stat.direction)
+                    stat.get_direction_value()
                 ])
                 f.write(line + "\n")
 
-    def load_training_stats_words(self, dictionary: Dictionary, words: list[Word]):
+    def load_training_stats_words(self, dictionary: Dictionary):
+        def parse_direction(value: str) -> TrainingDirection | None:
+            try:
+                return TrainingDirection(value)
+            except ValueError:
+                return None  # или выбросить исключение, если нужно строго
+
         file_path = self.__get_stats_file_name(dictionary.get_user(), dictionary.get_language())
+        words = dictionary.get_words()
         word_keys = {(w.word, w.translation) for w in words}
 
         try:
@@ -268,7 +276,7 @@ class DBFile(DataBase):
                         success=(success == "1"),
                         recall_time=float(recall_time) if recall_time else None,
                         timestamp=timestamp,
-                        direction=direction
+                        direction=parse_direction(direction)
                     )
 
                     word_obj.add_stat(stat)
