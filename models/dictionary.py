@@ -17,15 +17,19 @@ class WordInterface:
         pass
     
     @abstractmethod
-    def get_added_at(self):
+    def get_added_at(self) -> datetime:
         pass
     
     @abstractmethod
-    def set_added_at(self, added_at):
+    def set_added_at(self, added_at: datetime):
         pass
     
     @abstractmethod
-    def get_last_repeated_at(self):
+    def get_last_repeated_at(self) -> datetime:
+        pass
+
+    @abstractmethod
+    def get_last_repeated_at_str(self, fmt: str = "%d.%m.%Y") -> str:
         pass
 
     @abstractmethod
@@ -33,11 +37,11 @@ class WordInterface:
         pass
     
     @abstractmethod
-    def add_stat(self, stat: StatsRow | dict):
+    def add_stat(self, stat: StatsRow) -> None:
         pass
     
     @abstractmethod
-    def get_stats(self):
+    def get_stats(self) -> list[StatsRow]:
         pass
 
 class WordFactory:
@@ -77,16 +81,20 @@ class BasicWord(WordInterface):
 
     def get_last_repeated_at(self):
         if not self.__stats:
-            return ''
+            return None
         latest = max(self.__stats, key=lambda s: s.timestamp)
         return latest.timestamp
+
+    def get_last_repeated_at_str(self, fmt: str = "%d.%m.%Y"):
+        last_repeated_at = self.get_last_repeated_at()
+        if not last_repeated_at:
+            return ''
+        return last_repeated_at.strftime(fmt)
 
     def get_transcription(self):
         return self.__transcription if self.__transcription else ''
 
-    def add_stat(self, stat: StatsRow | dict):
-        if isinstance(stat, dict):
-            stat = StatsRow.from_dict(stat)
+    def add_stat(self, stat: StatsRow):
         self.__stats.append(stat)
 
     def get_stats(self) -> list[StatsRow]:

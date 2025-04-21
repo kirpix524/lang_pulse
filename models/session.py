@@ -134,7 +134,7 @@ class Training:
             training_id=self.__training_id,
             success=success,
             recall_time=round(elapsed, 2) if elapsed is not None else None,
-            timestamp=datetime.now().isoformat(timespec="seconds"),
+            timestamp=datetime.now(),
             direction=self.__direction
         )
 
@@ -197,10 +197,22 @@ class Session:
         self.__created_at = created_at
 
     def get_created_at(self):
-        return parse_datetime(self.__created_at)
+        return self.__created_at
+
+    def get_created_at_str(self, fmt: str = "%d.%m.%Y"):
+        created_at = self.get_created_at()
+        if not created_at:
+            return ''
+        return self.__created_at.strftime(fmt)
 
     def set_last_repeated_at(self, last_repeated_at):
         self.__last_repeated_at = last_repeated_at
+
+    def get_last_repeated_at_str(self, fmt: str = "%d.%m.%Y"):
+        last_repeated_at = self.get_last_repeated_at()
+        if not last_repeated_at:
+            return ''
+        return last_repeated_at.strftime(fmt)
 
     def get_last_repeated_at(self):
         return parse_datetime(self.__last_repeated_at)

@@ -135,8 +135,8 @@ class DBFile(DataBase):
                         last_repeated_at = parts[3] if parts[3] else None
 
                         session = Session(dictionary, session_id, [])
-                        session.set_created_at(created_at)
-                        session.set_last_repeated_at(last_repeated_at)
+                        session.set_created_at(datetime.fromisoformat(created_at))
+                        session.set_last_repeated_at(datetime.fromisoformat(last_repeated_at))
                         sessions[session_id] = session
 
                     elif record_type == "W" and len(parts) >= 4:
@@ -276,7 +276,7 @@ class DBFile(DataBase):
                         training_id=int(training_id),
                         success=(success == "1"),
                         recall_time=float(recall_time) if recall_time else None,
-                        timestamp=timestamp,
+                        timestamp=datetime.fromisoformat(timestamp) if timestamp else None,
                         direction=parse_direction(direction)
                     )
 

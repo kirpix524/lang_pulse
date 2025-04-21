@@ -16,6 +16,7 @@ from kivy.graphics import Color, RoundedRectangle
 
 import storage.config as config
 from models.dictionary import EnglishWord, WordInterface
+from models.session import Session
 from storage.db import db
 from storage.session_repo import SessionRepository
 from models.app import AppState
@@ -148,7 +149,7 @@ class ChooseWordsPopup(Popup):
             grid.add_widget(Label(text=word.get_transcription()))
             grid.add_widget(Label(text=word.translation))
             grid.add_widget(Label(text=word.get_added_at().strftime('%Y-%m-%d %H:%M') if word.get_added_at() else ''))
-            grid.add_widget(Label(text=word.get_last_repeated_at()))
+            grid.add_widget(Label(text=word.get_last_repeated_at_str()))
 
     def select_words(self):
         selected = [word for word, cb in self.checkboxes.items() if cb.active]
@@ -307,7 +308,7 @@ class DictionaryScreen(BaseScreen):
             add_col_label(container, f"[{word.get_transcription()}]")
             add_col_label(container, word.translation)
             add_col_label(container, word.get_added_at().strftime('%d.%m.%Y %H:%M') if word.get_added_at() else '')
-            add_col_label(container, word.get_last_repeated_at().strftime('%d.%m.%Y %H:%M') if word.get_last_repeated_at() else '')
+            add_col_label(container, word.get_last_repeated_at_str())
 
 class SessionListScreen(BaseScreen):
     """Экран списка тренировок"""
@@ -324,7 +325,7 @@ class SessionListScreen(BaseScreen):
         self.show_sessions()
         self.goto_screen('session_list')
 
-    def add_session_row(self, container, session):
+    def add_session_row(self, container, session: Session):
         def on_click(instance):
             self.state.set_session(session)
             self.goto_screen('session')
@@ -342,8 +343,7 @@ class SessionListScreen(BaseScreen):
         )
         container.add_widget(btn)
         add_col_label(container, session.get_created_at().strftime('%d.%m.%Y %H:%M'))
-        add_col_label(container, session.get_last_repeated_at().strftime(
-            '%d.%m.%Y %H:%M') if session.get_last_repeated_at() else '')
+        add_col_label(container, session.get_last_repeated_at_str())
         add_col_label(container, str(session.get_total_trainings()) )
 
     def show_sessions(self):
@@ -640,7 +640,7 @@ class WordStatsScreen(BaseScreen):
 
         row.add_widget(Label(text="Правильно" if stat.success else "Неправильно", color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
         row.add_widget(Label(text=f"{stat.recall_time}s" if stat.recall_time else "-", color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
-        row.add_widget(Label(text=stat.timestamp, color=(0, 0, 0, 1), size_hint_x=None, width=140, size_hint_y=None, height=30))
+        row.add_widget(Label(text=stat.get_timestamp_str(), color=(0, 0, 0, 1), size_hint_x=None, width=140, size_hint_y=None, height=30))
         row.add_widget(Label(text=stat.get_direction_name(), color=(0, 0, 0, 1), size_hint_x=None, width=80))
 
         return row
