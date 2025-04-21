@@ -1,8 +1,9 @@
+from abc import ABC, abstractmethod
 from pathlib import Path
 from datetime import datetime
 from models.language import Language
 from models.user import User
-from models.dictionary import Word, Dictionary
+from models.dictionary import EnglishWord, Dictionary, WordInterface
 from models.session import Session, Training
 from storage.config import TrainingDirection
 
@@ -11,42 +12,43 @@ from stats.stats import StatsRow
 
 
 class DataBase:
-    def __init__(self):
-        pass
-
+    @abstractmethod
     def load_user_list(self) -> list[User]:
         pass
 
+    @abstractmethod
     def save_user_list(self, user_list: list[User]) -> None:
         pass
 
+    @abstractmethod
     def load_language_list(self) -> list[Language]:
         pass
 
+    @abstractmethod
     def save_language_list(self, language_list: list[Language]) -> None:
         pass
 
+    @abstractmethod
     def load_dictionary(self, user: User, language: Language) -> Dictionary:
         pass
 
+    @abstractmethod
     def save_dictionary(self, dictionary: Dictionary) -> None:
         pass
 
+    @abstractmethod
     def load_all_sessions(self, dictionary: Dictionary) -> list[Session]:
         pass
 
+    @abstractmethod
     def save_all_sessions(self, dictionary: Dictionary, sessions: list[Session]) -> None:
         pass
 
-    def load_session(self, dictionary: Dictionary, session_id: int) -> Session:
-        pass
-
-    def save_session(self, session: Session) -> None:
-        pass
-
+    @abstractmethod
     def save_training_stats(self, session: Session, training: Training):
         pass
 
+    @abstractmethod
     def load_training_stats_words(self, dictionary: Dictionary):
         pass
 
@@ -141,7 +143,7 @@ class DBFile(DataBase):
                         session_id = int(parts[1])
                         term = parts[2]
                         translation = parts[3]
-                        word = dictionary.get_word(term, translation)
+                        word = dictionary.find_word(term, translation)
                         if word and session_id in sessions:
                             sessions[session_id].add_words([word])
                     elif record_type == "T" and len(parts) >= 6:
@@ -186,14 +188,14 @@ class DBFile(DataBase):
     def load_dictionary(self, user: User, language: Language) -> Dictionary:
         dictionary = Dictionary(user, language)
         dictionary_file_name = self.__get_dictionary_file_name(user, language)
-        words: list[Word] = []
+        words: list[WordInterface] = []
         try:
             with open(dictionary_file_name, "r", encoding="utf-8") as file:
                 for line in file:
-                    parts = get_parts(line, 5)
-                    word, translation, transcription, added_at, last_repeated_at = parts
+                    parts = line.strip().split("|")
+                    word, translation, transcription, added_at = (parts + [""] * 4)[:4]
                     if (added_at is None)or (added_at==''): added_at = datetime.now()
-                    words.append(Word(word, translation, transcription, added_at, last_repeated_at))
+                    words.append(EnglishWord(word, translation, transcription, added_at))
         except FileNotFoundError:
             print(f"Файл {dictionary_file_name} не найден. Будет создан при сохранении.")
         dictionary.set_words(words)
@@ -207,9 +209,8 @@ class DBFile(DataBase):
         with open(dictionary_file_name, "w", encoding="utf-8") as file:
             for word in dictionary.get_words():
                 file.write(f"{word.word}|{word.translation}"
-                           f"|{word.__transcription if word.__transcription else ''}"
-                           f"|{word.added_at if word.added_at else ''}"
-                           f"|{word.last_repeated_at if word.last_repeated_at else ''}\n")
+                           f"|{word.get_transcription()}"
+                           f"|{word.get_added_at()}\n")
 
     def __get_stats_file_name(self, user: User, language: Language) -> str:
         file_path = (f"{self.__stats_data['DIRECTORY']}"
@@ -264,7 +265,7 @@ class DBFile(DataBase):
                     if (word, translation) not in word_keys:
                         continue
 
-                    word_obj = dictionary.get_word(word, translation)
+                    word_obj = dictionary.find_word(word, translation)
                     if not word_obj:
                         continue
 

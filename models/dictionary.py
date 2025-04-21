@@ -1,19 +1,67 @@
+from abc import ABC, abstractmethod
 from models.language import Language
 from models.user import User
 from stats.stats import StatsRow
 from utils.utils import parse_datetime
+from datetime import datetime
 
-class Word:
-    def __init__(self, word, translation, transcription=None, added_at=None, last_repeated_at=None):
+class WordInterface:
+    word: str
+    translation: str
+    @abstractmethod
+    def get_start_time(self):
+        pass
+    
+    @abstractmethod
+    def set_start_time(self, start_time):
+        pass
+    
+    @abstractmethod
+    def get_added_at(self):
+        pass
+    
+    @abstractmethod
+    def set_added_at(self, added_at):
+        pass
+    
+    @abstractmethod
+    def get_last_repeated_at(self):
+        pass
+
+    @abstractmethod
+    def get_transcription(self) -> str:
+        pass
+    
+    @abstractmethod
+    def add_stat(self, stat: StatsRow | dict):
+        pass
+    
+    @abstractmethod
+    def get_stats(self):
+        pass
+
+class WordFactory:
+    registry = {}
+
+    @classmethod
+    def register(cls, language: str, word_class):
+        cls.registry[language.lower()] = word_class
+
+    @classmethod
+    def create_word(cls, language: str, *args, **kwargs) -> WordInterface:
+        word_class = cls.registry.get(language.lower())
+        if not word_class:
+            raise ValueError(f"No Word class registered for language: {language}")
+        return word_class(*args, **kwargs)
+
+class BasicWord(WordInterface):
+    def __init__(self, word, translation, transcription=None, added_at=None):
         self.word = word
         self.translation = translation
         self.__transcription = transcription
-
-        # Преобразование строк в datetime, если они заданы как строки
         self.__added_at = parse_datetime(added_at)
-        self.__last_repeated_at = parse_datetime(last_repeated_at)
         self.__start_time = None
-        self.__stats = []
+        self.__stats: list[StatsRow] = []
 
     def get_start_time(self):
         return self.__start_time
@@ -28,10 +76,10 @@ class Word:
         self.__added_at = parse_datetime(added_at)
 
     def get_last_repeated_at(self):
-        return self.__last_repeated_at
-
-    def set_last_repeated_at(self, last_repeated_at):
-        self.__last_repeated_at = parse_datetime(last_repeated_at)
+        if not self.__stats:
+            return ''
+        latest = max(self.__stats, key=lambda s: s.timestamp)
+        return latest.timestamp
 
     def get_transcription(self):
         return self.__transcription if self.__transcription else ''
@@ -44,19 +92,18 @@ class Word:
     def get_stats(self) -> list[StatsRow]:
         return self.__stats
 
+
+class EnglishWord(BasicWord):
+    def __init__(self, word, translation, transcription=None, added_at=None):
+        super().__init__(word, translation, transcription=transcription, added_at=added_at)
+
 class Dictionary:
     def __init__(self, user: User, language: Language):
         self.__user = user
         self.__language = language
-        self.__words: list[Word] = []
+        self.__words: list[WordInterface] = []
 
-    def set_user(self, user: User):
-        self.__user = user
-
-    def set_language(self, language: Language):
-        self.__language = language
-
-    def set_words(self, words: list[Word]):
+    def set_words(self, words: list[WordInterface]):
         self.__words = words
 
     def get_user(self):
@@ -68,22 +115,22 @@ class Dictionary:
     def get_words(self):
         return self.__words
 
-    def get_word(self, word, translation):
+    def find_word(self, word, translation):
         for w in self.__words:
             if w.word == word and w.translation == translation:
                 return w
         return None
 
-    def add_word(self, word: Word):
+    def add_word(self, word, translation, *args, **kwargs):
         # Проверяем, есть ли уже такое сочетание слово + перевод
-        for w in self.__words:
-            if w.word == word.word and w.translation == word.translation:
-                return  # Не добавляем дубликат
+        if self.find_word(word, translation):
+            return # Не добавляем дубликат
+        word = WordFactory.create_word(self.__language.lang_code, word, translation, added_at=datetime.now(), *args, **kwargs)
         self.__words.append(word)
 
     def update_training_stats(self, stats: list[StatsRow]):
         for stat in stats:
-            word = self.get_word(str(stat.word),str(stat.translation))
+            word = self.find_word(str(stat.word), str(stat.translation))
             if not word:
                 continue
             word.add_stat(stat)

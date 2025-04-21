@@ -1,23 +1,69 @@
+from abc import ABC, abstractmethod
 import time
 from datetime import datetime
 import random
 from utils.utils import parse_datetime
-from models.dictionary import Dictionary, Word
+from models.dictionary import Dictionary, WordInterface
 from stats.stats import StatsRow
 from storage.config import TrainingDirection
 
+class WordHandlingStrategy(ABC):
+    @abstractmethod
+    def handle_remembered(self, training: 'Training', word: WordInterface):
+        pass
+
+    @abstractmethod
+    def handle_forgotten(self, training: 'Training', word: WordInterface):
+        pass
+
+    @abstractmethod
+    def handle_pop_word(self, training: 'Training', word: WordInterface):
+        pass
+
+class DefaultWordHandlingStrategy(WordHandlingStrategy):
+    def handle_remembered(self, training: 'Training', word: WordInterface):
+        training._fix_stats(word, True)
+        if word in training._active_words:
+            training._active_words.remove(word)
+        training._current_word = None
+
+    def handle_forgotten(self, training: 'Training', word: WordInterface):
+        training._fix_stats(word, False)
+        if word in training._active_words:
+            training._active_words.remove(word)
+            insert_pos = 3 + random.randint(0, 2)
+            insert_pos = min(insert_pos, len(training._active_words))
+            training._active_words.insert(insert_pos, word)
+        training._current_word = None
+
+    def handle_pop_word(self, training: 'Training', word: WordInterface):
+        training._fix_stats(word, True)
+        if word in training._active_words:
+            training._active_words.remove(word)
+        training._current_word = None
+
 class Training:
-    def __init__(self, direction: TrainingDirection, interval: float, words: list[Word], training_id: int, session_id: int):
+    def __init__(self,
+                 direction: TrainingDirection,
+                 interval: float,
+                 words: list[WordInterface],
+                 training_id: int,
+                 session_id: int,
+                 strategy: WordHandlingStrategy = DefaultWordHandlingStrategy(),
+                 need_shuffle: bool = True):
         self.__direction = direction
         self.__interval = interval
         self.__training_date_time = datetime.now()
         self.__training_id = training_id
         self.__session_id = session_id
 
-        self.__active_words = words.copy()
-        random.shuffle(self.__active_words)
+        self._active_words = words.copy()
+        if need_shuffle:
+            random.shuffle(self._active_words)
         self.__current_word = None
         self.__stats: list[StatsRow] = []
+        self.__strategy = strategy
+
 
     def get_direction(self):
         return self.__direction
@@ -43,40 +89,29 @@ class Training:
     def get_id(self):
         return self.__training_id
 
-    def get_next_word(self) -> Word | None:
-        if not self.__active_words:
+    def get_next_word(self) -> WordInterface | None:
+        if not self._active_words:
             self.__current_word = None
             return None
-        self.__current_word = self.__active_words[0]
+        self.__current_word = self._active_words[0]
         return self.__current_word
 
     def mark_remembered(self):
-        word = self.__current_word
-        self.__fix_stats(word, True, self.__session_id ,self.__training_id)
-        if word in self.__active_words:
-            self.__active_words.remove(word)
-        self.__current_word = None
+        if self.__current_word:
+            self.__strategy.handle_remembered(self, self.__current_word)
 
     def mark_forgotten(self):
-        word = self.__current_word
-        self.__fix_stats(word, False, self.__session_id ,self.__training_id)
-        if word in self.__active_words:
-            self.__active_words.remove(word)
-            insert_pos = 3 + random.randint(0, 2)
-            insert_pos = min(insert_pos, len(self.__active_words))
-            self.__active_words.insert(insert_pos, word)
-        self.__current_word = None
+        if self.__current_word:
+            self.__strategy.handle_forgotten(self, self.__current_word)
 
     def pop_word(self):
-        self.__fix_stats(self.__current_word, True, self.__session_id ,self.__training_id)
-        if self.__current_word in self.__active_words:
-            self.__active_words.remove(self.__current_word)
-        self.__current_word = None
+        if self.__current_word:
+            self.__strategy.handle_pop_word(self, self.__current_word)
 
     def is_complete(self) -> bool:
-        return len(self.__active_words) == 0
+        return len(self._active_words) == 0
 
-    def get_current_word(self) -> Word | None:
+    def get_current_word(self) -> WordInterface | None:
         return self.__current_word
 
     def init_word_tracking(self):
@@ -86,7 +121,7 @@ class Training:
     def get_stats(self) -> list[StatsRow]:
         return self.__stats
 
-    def __fix_stats(self, word: Word, success: bool, session_id: int, training_id: int):
+    def _fix_stats(self, word: WordInterface, success: bool):
         if not word:
             return
 
@@ -95,8 +130,8 @@ class Training:
         stat = StatsRow(
             word=word.word,
             translation=word.translation,
-            session_id=session_id,
-            training_id=training_id,
+            session_id=self.__session_id,
+            training_id=self.__training_id,
             success=success,
             recall_time=round(elapsed, 2) if elapsed is not None else None,
             timestamp=datetime.now().isoformat(timespec="seconds"),
@@ -107,7 +142,7 @@ class Training:
 
 
 class Session:
-    def __init__(self, dictionary: Dictionary, session_id: int, words: list[Word]):
+    def __init__(self, dictionary: Dictionary, session_id: int, words: list[WordInterface]):
         self.__dictionary = dictionary
         self.__session_id = session_id
         self.__words = words
@@ -135,15 +170,15 @@ class Session:
     def get_trainings(self) -> list[Training]:
         return self.__trainings
 
-    def add_words(self, words: list[Word]):
+    def add_words(self, words: list[WordInterface]):
         for word in words:
             self.__words.append(word)
 
-    def del_words(self, words: list[Word]):
+    def del_words(self, words: list[WordInterface]):
         for word in words:
             self.__words.remove(word)
 
-    def get_words(self) -> list[Word]:
+    def get_words(self) -> list[WordInterface]:
         return self.__words
 
     def get_id(self):
@@ -170,7 +205,7 @@ class Session:
     def get_last_repeated_at(self):
         return parse_datetime(self.__last_repeated_at)
 
-    def get_words_not_in_session(self) -> list[Word]:
+    def get_words_not_in_session(self) -> list[WordInterface]:
         existing_words = {w.word for w in self.__words}
         return [w for w in self.__dictionary.get_words() if w.word not in existing_words]
 

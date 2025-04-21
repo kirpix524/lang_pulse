@@ -16,41 +16,45 @@ class AppState:
         self.__session_repo: SessionRepository | None = None
         self.__session: Session | None = None
 
-    def set_user_repo(self, user_repo: UserRepository):
-        self.__user_repo = user_repo
-
-    def set_user(self, user: User):
-        self.__user = user
-
-    def set_language(self, language: Language):
-        self.__language = language
-
-    def set_dictionary(self, dictionary: Dictionary):
-        self.__dictionary = dictionary
-
-    def set_session_repo(self, session_repo: SessionRepository):
-        self.__session_repo = session_repo
-
-    def set_session(self, session: Session):
-        self.__session = session
-
-    def get_session_repo(self) -> SessionRepository:
-        return self.__session_repo
-
-    def get_session(self) -> Session:
-        return self.__session
-
     def get_user_repo(self) -> UserRepository:
         return self.__user_repo
 
     def get_lang_repo(self) -> LanguageRepository:
         return self.__lang_repo
 
+    def set_user(self, user: User):
+        self.__user = user
+
     def get_user(self) -> User:
         return self.__user
+
+    def set_language(self, language: Language):
+        self.__language = language
 
     def get_language(self) -> Language:
         return self.__language
 
+    def set_dictionary(self, dictionary: Dictionary):
+        self.__dictionary = dictionary
+
     def get_dictionary(self) -> Dictionary:
         return self.__dictionary
+
+    def set_session_repo(self, session_repo: SessionRepository):
+        self.__session_repo = session_repo
+
+    def get_session_repo(self) -> SessionRepository:
+        return self.__session_repo
+
+    def set_session(self, session: Session):
+        self.__session = session
+
+    def get_session(self) -> Session:
+        return self.__session
+
+
+
+
+
+
+

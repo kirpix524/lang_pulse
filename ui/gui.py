@@ -15,7 +15,7 @@ from kivy.uix.widget import Widget
 from kivy.graphics import Color, RoundedRectangle
 
 import storage.config as config
-from models.dictionary import Word
+from models.dictionary import EnglishWord, WordInterface
 from storage.db import db
 from storage.session_repo import SessionRepository
 from models.app import AppState
@@ -116,7 +116,7 @@ class AddNewWordPopup(Popup):
         translation = self.ids.translation_input.text.strip()
 
         if term and translation:
-            self.dictionary.add_word(Word(term, translation, transcription, datetime.now()))
+            self.dictionary.add_word(term, translation, transcription=transcription)
             db.save_dictionary(self.dictionary)
             self.dismiss()
             if self.on_success:
@@ -148,7 +148,7 @@ class ChooseWordsPopup(Popup):
             grid.add_widget(Label(text=word.get_transcription()))
             grid.add_widget(Label(text=word.translation))
             grid.add_widget(Label(text=word.get_added_at().strftime('%Y-%m-%d %H:%M') if word.get_added_at() else ''))
-            grid.add_widget(Label(text=word.get_last_repeated_at().strftime('%Y-%m-%d %H:%M') if word.get_last_repeated_at() else ''))
+            grid.add_widget(Label(text=word.get_last_repeated_at()))
 
     def select_words(self):
         selected = [word for word, cb in self.checkboxes.items() if cb.active]
@@ -242,6 +242,7 @@ class LoginScreen(BaseScreen):
             if self.state.get_lang_repo().get_language_by_name(lang_name):
                 self.state.set_user(self.state.get_user_repo().get_user_by_name(username))
                 self.state.set_language(self.state.get_lang_repo().get_language_by_name(lang_name))
+
                 self.state.set_dictionary(db.load_dictionary(self.state.get_user(), self.state.get_language()))
                 self.state.set_session_repo(SessionRepository(self.state.get_dictionary()))
                 self.manager.current = 'main_menu'
@@ -565,7 +566,7 @@ class SessionTrainingScreen(BaseScreen):
 class WordStatsScreen(BaseScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.__words_for_stats: list[Word] = []
+        self.__words_for_stats: list[WordInterface] = []
         self.__stats_user = None
         self.__stats_language = None
 
@@ -618,14 +619,14 @@ class WordStatsScreen(BaseScreen):
 
         for word in self.__words_for_stats:
             stats = word.get_stats()
+            container.add_widget(self.create_word_row(word))
             if not stats:
                 continue
 
-            container.add_widget(self.create_word_row(word))
             for stat in stats:
                 container.add_widget(self.create_stat_row(stat))
 
-    def create_word_row(self, word: Word):
+    def create_word_row(self, word: WordInterface):
         row = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, spacing=5)
 
         row.add_widget(Label(text=word.word, font_size='18sp', bold=True, color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
@@ -639,7 +640,7 @@ class WordStatsScreen(BaseScreen):
 
         row.add_widget(Label(text="Правильно" if stat.success else "Неправильно", color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
         row.add_widget(Label(text=f"{stat.recall_time}s" if stat.recall_time else "-", color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
-        row.add_widget(Label(text=stat.timestamp.replace("T", " "), color=(0, 0, 0, 1), size_hint_x=None, width=140, size_hint_y=None, height=30))
+        row.add_widget(Label(text=stat.timestamp, color=(0, 0, 0, 1), size_hint_x=None, width=140, size_hint_y=None, height=30))
         row.add_widget(Label(text=stat.get_direction_name(), color=(0, 0, 0, 1), size_hint_x=None, width=80))
 
         return row
