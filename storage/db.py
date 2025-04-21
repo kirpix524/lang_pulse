@@ -129,14 +129,12 @@ class DBFile(DataBase):
 
                     record_type = parts[0]
 
-                    if record_type == "S" and len(parts) >= 4:
+                    if record_type == "S" and len(parts) >= 3:
                         session_id = int(parts[1])
                         created_at = parts[2] if parts[2] else None
-                        last_repeated_at = parts[3] if parts[3] else None
 
                         session = Session(dictionary, session_id, [])
                         session.set_created_at(datetime.fromisoformat(created_at))
-                        session.set_last_repeated_at(datetime.fromisoformat(last_repeated_at))
                         sessions[session_id] = session
 
                     elif record_type == "W" and len(parts) >= 4:
@@ -154,7 +152,7 @@ class DBFile(DataBase):
                         training_date_time = parts[5]
 
                         if session_id in sessions:
-                            sessions[session_id].add_existing_training(direction, interval, training_id, training_date_time)
+                            sessions[session_id].add_existing_training(direction, interval, training_id, datetime.fromisoformat(training_date_time))
 
         except FileNotFoundError:
             print(f"Файл {sessions_file} не найден. Будет создан при сохранении.")
@@ -167,7 +165,7 @@ class DBFile(DataBase):
         with open(sessions_file, "w", encoding="utf-8") as file:
             for session in sessions:
                 file.write(
-                    f"S|{session.get_id()}|{session.get_created_at() or ''}|{session.get_last_repeated_at() or ''}\n"
+                    f"S|{session.get_id()}|{session.get_created_at() or ''}\n"
                 )
                 for word in session.get_words():
                     file.write(

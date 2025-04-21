@@ -307,7 +307,7 @@ class DictionaryScreen(BaseScreen):
             add_col_label(container, word.word)
             add_col_label(container, f"[{word.get_transcription()}]")
             add_col_label(container, word.translation)
-            add_col_label(container, word.get_added_at().strftime('%d.%m.%Y %H:%M') if word.get_added_at() else '')
+            add_col_label(container, word.get_added_at_str())
             add_col_label(container, word.get_last_repeated_at_str())
 
 class SessionListScreen(BaseScreen):
@@ -342,7 +342,7 @@ class SessionListScreen(BaseScreen):
             color=(0, 0, 0, 1)
         )
         container.add_widget(btn)
-        add_col_label(container, session.get_created_at().strftime('%d.%m.%Y %H:%M'))
+        add_col_label(container, session.get_created_at_str())
         add_col_label(container, session.get_last_repeated_at_str())
         add_col_label(container, str(session.get_total_trainings()) )
 
@@ -469,7 +469,6 @@ class SessionTrainingScreen(BaseScreen):
         Window.unbind(on_key_down=self._on_key_down)
         self.training_text = "🎉 Тренировка завершена"
         training = self.state.get_session().get_current_training()
-        self.state.get_session().set_last_repeated_at(training.get_training_date_time())
         # Сохранить статистику
         db.save_training_stats(self.state.get_session(), training)
         db.save_all_sessions(self.state.get_dictionary(), self.state.get_session_repo().get_sessions())

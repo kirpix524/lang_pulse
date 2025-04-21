@@ -65,28 +65,28 @@ class Training:
         self.__strategy = strategy
 
 
-    def get_direction(self):
+    def get_direction(self) -> TrainingDirection:
         return self.__direction
 
-    def get_direction_value(self):
+    def get_direction_value(self) -> str:
         return self.__direction.value if self.__direction else ''
 
-    def set_direction(self, direction: TrainingDirection):
+    def set_direction(self, direction: TrainingDirection) -> None:
         self.__direction = direction
 
-    def get_interval(self):
+    def get_interval(self) -> float:
         return self.__interval
 
-    def set_interval(self, interval):
+    def set_interval(self, interval) -> None:
         self.__interval = interval
 
-    def get_training_date_time(self):
+    def get_training_date_time(self) -> datetime:
         return self.__training_date_time
 
-    def set_training_date_time(self, training_date_time):
+    def set_training_date_time(self, training_date_time: datetime) -> None:
         self.__training_date_time = training_date_time
 
-    def get_id(self):
+    def get_id(self) -> int:
         return self.__training_id
 
     def get_next_word(self) -> WordInterface | None:
@@ -96,15 +96,15 @@ class Training:
         self.__current_word = self._active_words[0]
         return self.__current_word
 
-    def mark_remembered(self):
+    def mark_remembered(self) -> None:
         if self.__current_word:
             self.__strategy.handle_remembered(self, self.__current_word)
 
-    def mark_forgotten(self):
+    def mark_forgotten(self) -> None:
         if self.__current_word:
             self.__strategy.handle_forgotten(self, self.__current_word)
 
-    def pop_word(self):
+    def pop_word(self) -> None:
         if self.__current_word:
             self.__strategy.handle_pop_word(self, self.__current_word)
 
@@ -114,14 +114,14 @@ class Training:
     def get_current_word(self) -> WordInterface | None:
         return self.__current_word
 
-    def init_word_tracking(self):
+    def init_word_tracking(self) -> None:
         if self.__current_word:
             self.__current_word.set_start_time(time.time())
 
     def get_stats(self) -> list[StatsRow]:
         return self.__stats
 
-    def _fix_stats(self, word: WordInterface, success: bool):
+    def _fix_stats(self, word: WordInterface, success: bool) -> None:
         if not word:
             return
 
@@ -159,7 +159,7 @@ class Session:
         self.__trainings.append(training)
         self.__last_repeated_at = training.get_training_date_time()
 
-    def add_existing_training(self, direction: TrainingDirection, interval: float, training_id: int = None, training_date_time = None):
+    def add_existing_training(self, direction: TrainingDirection, interval: float, training_id: int = None, training_date_time: datetime = None):
         training = Training(direction, interval, [], training_id, self.__session_id)
         training.set_training_date_time(training_date_time)
         self.__trainings.append(training)
@@ -205,9 +205,6 @@ class Session:
             return ''
         return self.__created_at.strftime(fmt)
 
-    def set_last_repeated_at(self, last_repeated_at):
-        self.__last_repeated_at = last_repeated_at
-
     def get_last_repeated_at_str(self, fmt: str = "%d.%m.%Y"):
         last_repeated_at = self.get_last_repeated_at()
         if not last_repeated_at:
@@ -215,7 +212,10 @@ class Session:
         return last_repeated_at.strftime(fmt)
 
     def get_last_repeated_at(self):
-        return parse_datetime(self.__last_repeated_at)
+        if not self.__trainings:
+            return None
+        latest = max(self.__trainings, key=lambda t: t.get_training_date_time())
+        return latest.get_training_date_time()
 
     def get_words_not_in_session(self) -> list[WordInterface]:
         existing_words = {w.word for w in self.__words}

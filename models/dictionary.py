@@ -76,6 +76,11 @@ class BasicWord(WordInterface):
     def get_added_at(self):
         return self.__added_at
 
+    def get_added_at_str(self, fmt: str = "%d.%m.%Y"):
+        if not self.__added_at:
+            return ''
+        return self.__added_at.strftime(fmt)
+
     def set_added_at(self, added_at):
         self.__added_at = parse_datetime(added_at)
 
