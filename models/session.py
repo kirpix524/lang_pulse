@@ -2,22 +2,23 @@ from abc import ABC, abstractmethod
 import time
 from datetime import datetime
 import random
-from utils.utils import parse_datetime
-from models.dictionary import Dictionary, WordInterface
+from models.dictionary import WordInterface
+from models.language import Language
+from models.user import User
 from stats.stats import StatsRow
 from storage.config import TrainingDirection
 
 class WordHandlingStrategy(ABC):
     @abstractmethod
-    def handle_remembered(self, training: 'Training', word: WordInterface):
+    def handle_remembered(self, training: 'Training', word: WordInterface) -> None:
         pass
 
     @abstractmethod
-    def handle_forgotten(self, training: 'Training', word: WordInterface):
+    def handle_forgotten(self, training: 'Training', word: WordInterface) -> None:
         pass
 
     @abstractmethod
-    def handle_pop_word(self, training: 'Training', word: WordInterface):
+    def handle_pop_word(self, training: 'Training', word: WordInterface) -> None:
         pass
 
 class DefaultWordHandlingStrategy(WordHandlingStrategy):
@@ -142,84 +143,88 @@ class Training:
 
 
 class Session:
-    def __init__(self, dictionary: Dictionary, session_id: int, words: list[WordInterface]):
-        self.__dictionary = dictionary
+    def __init__(self, user: User, language: Language, session_id: int, words: list[WordInterface]):
+        self.__user = user
+        self.__language = language
         self.__session_id = session_id
         self.__words = words
         self.__created_at = datetime.now()
         self.__last_repeated_at = None
         self.__trainings: list[Training] = []
-
         self.__current_training = None
+        self.__session_name = ""
 
-    def add_new_training(self, direction: TrainingDirection, interval: float):
+    def add_new_training(self, direction: TrainingDirection, interval: float) -> None:
         new_training_id = 1 if not self.__trainings else self.__trainings[-1].get_id() + 1
         training = Training(direction, interval, self.__words.copy(), new_training_id, self.__session_id)
         self.__current_training = training
         self.__trainings.append(training)
         self.__last_repeated_at = training.get_training_date_time()
 
-    def add_existing_training(self, direction: TrainingDirection, interval: float, training_id: int = None, training_date_time: datetime = None):
+    def add_existing_training(self,
+                              direction: TrainingDirection,
+                              interval: float,
+                              training_id: int = None,
+                              training_date_time: datetime = None) -> None:
         training = Training(direction, interval, [], training_id, self.__session_id)
         training.set_training_date_time(training_date_time)
         self.__trainings.append(training)
 
-    def get_current_training(self):
+    def get_current_training(self) -> Training:
         return self.__current_training
 
     def get_trainings(self) -> list[Training]:
         return self.__trainings
 
-    def add_words(self, words: list[WordInterface]):
+    def add_words(self, words: list[WordInterface]) -> None:
         for word in words:
             self.__words.append(word)
 
-    def del_words(self, words: list[WordInterface]):
+    def del_words(self, words: list[WordInterface]) -> None:
         for word in words:
             self.__words.remove(word)
 
     def get_words(self) -> list[WordInterface]:
         return self.__words
 
-    def get_id(self):
+    def get_id(self) -> int:
         return self.__session_id
 
-    def get_session_name(self):
+    def set_session_name(self, new_name: str) -> None:
+        self.__session_name = new_name
+
+    def get_session_name(self) -> str:
         return f"Session {self.__session_id}"
 
-    def get_user(self):
-        return self.__dictionary.get_user()
+    def get_user(self) -> User:
+        return self.__user
 
-    def get_language(self):
-        return self.__dictionary.get_language()
+    def get_language(self) -> Language:
+        return self.__language
 
-    def set_created_at(self, created_at):
+    def set_created_at(self, created_at: datetime) -> None:
         self.__created_at = created_at
 
-    def get_created_at(self):
+    def get_created_at(self) -> datetime:
         return self.__created_at
 
-    def get_created_at_str(self, fmt: str = "%d.%m.%Y"):
+    def get_created_at_str(self, fmt: str = "%d.%m.%Y") -> str:
         created_at = self.get_created_at()
         if not created_at:
             return ''
         return self.__created_at.strftime(fmt)
 
-    def get_last_repeated_at_str(self, fmt: str = "%d.%m.%Y"):
+    def get_last_repeated_at_str(self, fmt: str = "%d.%m.%Y") -> str:
         last_repeated_at = self.get_last_repeated_at()
         if not last_repeated_at:
             return ''
         return last_repeated_at.strftime(fmt)
 
-    def get_last_repeated_at(self):
+    def get_last_repeated_at(self) -> datetime | None:
         if not self.__trainings:
             return None
         latest = max(self.__trainings, key=lambda t: t.get_training_date_time())
         return latest.get_training_date_time()
-
-    def get_words_not_in_session(self) -> list[WordInterface]:
-        existing_words = {w.word for w in self.__words}
-        return [w for w in self.__dictionary.get_words() if w.word not in existing_words]
 
     def can_be_changed(self) -> bool:
         return not self.__trainings

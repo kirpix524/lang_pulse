@@ -138,18 +138,18 @@ class ChooseWordsPopup(Popup):
         # Заголовки
         grid.add_widget(Label(text='', bold=True))
         for header in ["Слово", "Транскрипция", "Перевод", "Добавлено", "Последнее повторение"]:
-            grid.add_widget(Label(text=header, bold=True, color=(0, 0, 0, 1)))
+            grid.add_widget(Label(text=header, bold=True))
 
         for word in self.words:
             cb = CheckBox(size_hint=(None, None), size=(30, 30))
             self.checkboxes[word] = cb
             grid.add_widget(cb)
 
-            grid.add_widget(Label(text=word.word))
-            grid.add_widget(Label(text=word.get_transcription()))
-            grid.add_widget(Label(text=word.translation))
-            grid.add_widget(Label(text=word.get_added_at().strftime('%Y-%m-%d %H:%M') if word.get_added_at() else ''))
-            grid.add_widget(Label(text=word.get_last_repeated_at_str()))
+            grid.add_widget(Label(text=word.word, size_hint_x=None, width=150))
+            grid.add_widget(Label(text=word.get_transcription(), size_hint_x=None, width=150))
+            grid.add_widget(Label(text=word.translation, size_hint_x=None, width=150))
+            grid.add_widget(Label(text=word.get_added_at_str(), size_hint_x=None, width=100))
+            grid.add_widget(Label(text=word.get_last_repeated_at_str(), size_hint_x=None, width=100))
 
     def select_words(self):
         selected = [word for word, cb in self.checkboxes.items() if cb.active]
@@ -405,11 +405,10 @@ class SessionScreen(BaseScreen):
             return
         dictionary = self.state.get_dictionary()
 
-
         if not dictionary or not session:
             show_message("Ошибка", "Словарь или тренировка не найдены")
 
-        available_words = session.get_words_not_in_session()
+        available_words = dictionary.get_words_not_in_list(session.get_words())
 
         def on_added(words):
             session.add_words(words)

@@ -133,7 +133,7 @@ class DBFile(DataBase):
                         session_id = int(parts[1])
                         created_at = parts[2] if parts[2] else None
 
-                        session = Session(dictionary, session_id, [])
+                        session = Session(dictionary.get_user(), dictionary.get_language(), session_id, [])
                         session.set_created_at(datetime.fromisoformat(created_at))
                         sessions[session_id] = session
 
@@ -192,7 +192,10 @@ class DBFile(DataBase):
                 for line in file:
                     parts = line.strip().split("|")
                     word, translation, transcription, added_at = (parts + [""] * 4)[:4]
-                    if (added_at is None)or (added_at==''): added_at = datetime.now()
+                    if added_at:
+                        added_at = datetime.fromisoformat(added_at)
+                    else:
+                        added_at = datetime.now()
                     words.append(EnglishWord(word, translation, transcription, added_at))
         except FileNotFoundError:
             print(f"Файл {dictionary_file_name} не найден. Будет создан при сохранении.")

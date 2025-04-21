@@ -2,18 +2,17 @@ from abc import ABC, abstractmethod
 from models.language import Language
 from models.user import User
 from stats.stats import StatsRow
-from utils.utils import parse_datetime
 from datetime import datetime
 
 class WordInterface:
     word: str
     translation: str
     @abstractmethod
-    def get_start_time(self):
+    def get_start_time(self) -> float:
         pass
     
     @abstractmethod
-    def set_start_time(self, start_time):
+    def set_start_time(self, start_time: float) -> None:
         pass
     
     @abstractmethod
@@ -21,7 +20,7 @@ class WordInterface:
         pass
     
     @abstractmethod
-    def set_added_at(self, added_at: datetime):
+    def set_added_at(self, added_at: datetime) -> None:
         pass
     
     @abstractmethod
@@ -59,11 +58,11 @@ class WordFactory:
         return word_class(*args, **kwargs)
 
 class BasicWord(WordInterface):
-    def __init__(self, word, translation, transcription=None, added_at=None):
+    def __init__(self, word, translation, transcription=None, added_at: datetime=None):
         self.word = word
         self.translation = translation
         self.__transcription = transcription
-        self.__added_at = parse_datetime(added_at)
+        self.__added_at = added_at
         self.__start_time = None
         self.__stats: list[StatsRow] = []
 
@@ -80,9 +79,6 @@ class BasicWord(WordInterface):
         if not self.__added_at:
             return ''
         return self.__added_at.strftime(fmt)
-
-    def set_added_at(self, added_at):
-        self.__added_at = parse_datetime(added_at)
 
     def get_last_repeated_at(self):
         if not self.__stats:
@@ -116,34 +112,37 @@ class Dictionary:
         self.__language = language
         self.__words: list[WordInterface] = []
 
-    def set_words(self, words: list[WordInterface]):
+    def set_words(self, words: list[WordInterface]) -> None:
         self.__words = words
 
-    def get_user(self):
+    def get_user(self) -> User:
         return self.__user
 
-    def get_language(self):
+    def get_language(self) -> Language:
         return self.__language
 
-    def get_words(self):
+    def get_words(self) -> list[WordInterface]:
         return self.__words
 
-    def find_word(self, word, translation):
+    def find_word(self, word, translation) -> WordInterface | None:
         for w in self.__words:
             if w.word == word and w.translation == translation:
                 return w
         return None
 
-    def add_word(self, word, translation, *args, **kwargs):
+    def add_word(self, word, translation, *args, **kwargs) -> None:
         # Проверяем, есть ли уже такое сочетание слово + перевод
         if self.find_word(word, translation):
             return # Не добавляем дубликат
         word = WordFactory.create_word(self.__language.lang_code, word, translation, added_at=datetime.now(), *args, **kwargs)
         self.__words.append(word)
 
-    def update_training_stats(self, stats: list[StatsRow]):
+    def update_training_stats(self, stats: list[StatsRow]) -> None:
         for stat in stats:
             word = self.find_word(str(stat.word), str(stat.translation))
             if not word:
                 continue
             word.add_stat(stat)
+
+    def get_words_not_in_list(self, words: list[WordInterface]) -> list[WordInterface]:
+        return [w for w in self.__words if w.word not in words]
