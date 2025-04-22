@@ -17,7 +17,6 @@ from kivy.graphics import Color, RoundedRectangle
 import storage.config as config
 from models.dictionary import EnglishWord, IBasicWord
 from models.session import Session
-from storage.db import db
 from storage.session_repo import SessionRepository
 from models.app import AppState
 from storage.config import TrainingDirection
@@ -241,7 +240,8 @@ class LoginScreen(BaseScreen):
                 self.state.set_user(self.state.get_user_repo().get_user_by_name(username))
                 self.state.set_language(self.state.get_lang_repo().get_language_by_name(lang_name))
 
-                self.state.set_dictionary(db.load_dictionary(self.state.get_user(), self.state.get_language()))
+                self.state.set_dictionary(self.state.dictionary_storage.load_dictionary(self.state.get_user(), self.state.get_language()))
+                self.state.stats_storage.load_training_stats_words(self.state.get_user(), self.state.get_language(), self.state.get_dictionary())
                 self.state.set_session_repo(SessionRepository(self.state.get_user(), self.state.get_language(), self.state.session_storage, self.state.get_dictionary()))
                 self.manager.current = 'main_menu'
             else:
@@ -413,7 +413,7 @@ class SessionScreen(BaseScreen):
 
         def on_added(words):
             session.add_words(words)
-            db.save_all_sessions(self.state.get_dictionary(), self.state.get_session_repo().get_sessions())
+            self.state.session_storage.save_all_sessions(self.state.get_user(), self.state.get_language(), self.state.get_session_repo().get_sessions())
             self.show_words()
 
         popup = ChooseWordsPopup(words=available_words, on_words_selected=on_added)
@@ -433,7 +433,7 @@ class SessionScreen(BaseScreen):
 
         def on_deleted(words):
             session.del_words(words)
-            db.save_all_sessions(self.state.get_dictionary(), self.state.get_session_repo().get_sessions())
+            self.state.session_storage.save_all_sessions(self.state.get_user(), self.state.get_language(), self.state.get_session_repo().get_sessions())
             self.show_words()
 
         popup = ChooseWordsPopup(words=available_words, on_words_selected=on_deleted)
@@ -470,8 +470,8 @@ class SessionTrainingScreen(BaseScreen):
         self.training_text = "🎉 Тренировка завершена"
         training = self.state.get_session().get_current_training()
         # Сохранить статистику
-        db.save_training_stats(self.state.get_session(), training)
-        db.save_all_sessions(self.state.get_dictionary(), self.state.get_session_repo().get_sessions())
+        self.state.stats_storage.save_training_stats(self.state.get_session(), training)
+        self.state.session_storage.save_all_sessions(self.state.get_user(), self.state.get_language(), self.state.get_session_repo().get_sessions())
         self.state.get_dictionary().update_training_stats(training.get_stats())
         # Показать статистику
         popup = SessionStatsPopup(stats=training.get_stats(), on_dismiss=self.goto_screen('session'))
