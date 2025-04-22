@@ -1,20 +1,25 @@
 from models.dictionary import Dictionary
+from models.language import Language
 from models.session import Session
-from storage.db import db
+from models.user import User
+from storage.db import ISessionStorage
+
 
 class SessionRepository:
-    def __init__(self, dictionary: Dictionary):
-        #self.__sessions: list[Session] = db.load_session_list(dictionary)
-        self.__sessions: list[Session] = db.load_all_sessions(dictionary)
+    def __init__(self, user: User, language: Language, storage: ISessionStorage, dictionary: Dictionary):
+        self.__storage = storage
+        self.__user = user
+        self.__language = language
         self.__dictionary = dictionary
+        self.__sessions: list[Session] = self.__storage.load_all_sessions(user, language, dictionary)
 
     def __get_new_session_id(self) -> int:
-        return len(self.__sessions) + 1
+        return len(self.__sessions) + 1  #todo
 
     def new_session(self) -> Session:
         session = Session(self.__dictionary, self.__get_new_session_id(), [])
         self.__sessions.append(session)
-        db.save_all_sessions(self.__dictionary, self.__sessions)
+        self.__storage.save_all_sessions(self.__dictionary, self.__sessions)
         return session
 
     def get_sessions(self) -> list[Session]:

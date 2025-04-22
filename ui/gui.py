@@ -15,14 +15,14 @@ from kivy.uix.widget import Widget
 from kivy.graphics import Color, RoundedRectangle
 
 import storage.config as config
-from models.dictionary import EnglishWord, WordInterface
+from models.dictionary import EnglishWord, IBasicWord
 from models.session import Session
-from storage.db import db
+from storage.db import db, session_storage
 from storage.session_repo import SessionRepository
 from models.app import AppState
 from storage.config import TrainingDirection
 from stats.stats import StatsRow
-from datetime import datetime
+
 
 def show_message(title: str, message: str):
     popup = MessagePopup()
@@ -245,7 +245,7 @@ class LoginScreen(BaseScreen):
                 self.state.set_language(self.state.get_lang_repo().get_language_by_name(lang_name))
 
                 self.state.set_dictionary(db.load_dictionary(self.state.get_user(), self.state.get_language()))
-                self.state.set_session_repo(SessionRepository(self.state.get_dictionary()))
+                self.state.set_session_repo(SessionRepository(self.state.get_user(), self.state.get_language(), session_storage, self.state.get_dictionary()))
                 self.manager.current = 'main_menu'
             else:
                 show_message("Ошибка",'Нужно выбрать язык')
@@ -564,7 +564,7 @@ class SessionTrainingScreen(BaseScreen):
 class WordStatsScreen(BaseScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.__words_for_stats: list[WordInterface] = []
+        self.__words_for_stats: list[IBasicWord] = []
         self.__stats_user = None
         self.__stats_language = None
 
@@ -624,7 +624,7 @@ class WordStatsScreen(BaseScreen):
             for stat in stats:
                 container.add_widget(self.create_stat_row(stat))
 
-    def create_word_row(self, word: WordInterface):
+    def create_word_row(self, word: IBasicWord):
         row = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, spacing=5)
 
         row.add_widget(Label(text=word.word, font_size='18sp', bold=True, color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))
