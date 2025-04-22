@@ -9,7 +9,6 @@ from storage.config import TrainingDirection
 import storage.config as config
 from stats.stats import StatsRow
 
-
 class IUserStorage:
     @abstractmethod
     def load_user_list(self) -> list[User]:
