@@ -17,7 +17,7 @@ from kivy.graphics import Color, RoundedRectangle
 import storage.config as config
 from models.dictionary import EnglishWord, IBasicWord
 from models.session import Session
-from storage.db import db, session_storage
+from storage.db import db
 from storage.session_repo import SessionRepository
 from models.app import AppState
 from storage.config import TrainingDirection
@@ -105,23 +105,20 @@ class MessagePopup(Popup):
         # Устанавливаем заголовок сообщения
         self.title = title
 
-class AddNewWordPopup(Popup):
-    def __init__(self, dictionary, on_success=None, **kwargs):
+class InputWordPopup(Popup):
+    def __init__(self, on_input_finished=None, **kwargs):
         super().__init__(**kwargs)
-        self.dictionary = dictionary
-        self.on_success = on_success
+        self.on_input_finished = on_input_finished
 
-    def add_new_word(self):
+    def finish_input(self):
         term = self.ids.word_input.text.strip()
         transcription = self.ids.transcription_input.text.strip()
         translation = self.ids.translation_input.text.strip()
 
         if term and translation:
-            self.dictionary.add_word(term, translation, transcription=transcription)
-            db.save_dictionary(self.dictionary)
-            self.dismiss()
-            if self.on_success:
-                self.on_success()
+            if self.on_input_finished:
+                self.on_input_finished(term, translation, transcription)
+        self.dismiss()
 
 class ChooseWordsPopup(Popup):
     def __init__(self, words, on_words_selected, **kwargs):
@@ -245,7 +242,7 @@ class LoginScreen(BaseScreen):
                 self.state.set_language(self.state.get_lang_repo().get_language_by_name(lang_name))
 
                 self.state.set_dictionary(db.load_dictionary(self.state.get_user(), self.state.get_language()))
-                self.state.set_session_repo(SessionRepository(self.state.get_user(), self.state.get_language(), session_storage, self.state.get_dictionary()))
+                self.state.set_session_repo(SessionRepository(self.state.get_user(), self.state.get_language(), self.state.session_storage, self.state.get_dictionary()))
                 self.manager.current = 'main_menu'
             else:
                 show_message("Ошибка",'Нужно выбрать язык')
@@ -281,7 +278,11 @@ class DictionaryScreen(BaseScreen):
 
     def add_word(self):
         """Обрабатывает нажатие кнопки "Добавить слово" """
-        popup = AddNewWordPopup(self.state.get_dictionary(), on_success=self.show_words)
+        def save_word(term, translation, transcription):
+            self.state.get_dictionary().add_word(term, translation, transcription=transcription)
+            self.state.dictionary_storage.save_dictionary(self.state.get_dictionary())
+            self.show_words()
+        popup = InputWordPopup(on_input_finished=save_word)
         popup.open()
 
     def on_pre_enter(self):
@@ -656,7 +657,7 @@ class LangPulseApp(App):
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_list.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}shared_widgets.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}message_popup.kv")
-        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}add_new_word_popup.kv")
+        Builder.load_file(f"{config.LAYOUTS_DIRECTORY}input_word_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}choose_words_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}direction_select_popup.kv")
         Builder.load_file(f"{config.LAYOUTS_DIRECTORY}session_stats_popup.kv")

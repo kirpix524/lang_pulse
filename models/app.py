@@ -5,9 +5,15 @@ from models.dictionary import Dictionary
 from storage.lang_repo import LanguageRepository
 from storage.session_repo import SessionRepository
 from storage.user_repo import UserRepository
-from storage.db import user_storage, language_storage
+from storage.db import user_storage, language_storage, dictionary_storage, session_storage, stats_storage, \
+    IDictionaryStorage, ISessionStorage, IStatsStorage
+
 
 class AppState:
+    dictionary_storage: IDictionaryStorage
+    session_storage: ISessionStorage
+    stats_storage: IStatsStorage
+
     def __init__(self):
         self.__user_repo = UserRepository(user_storage)
         self.__lang_repo = LanguageRepository(language_storage)
@@ -16,6 +22,9 @@ class AppState:
         self.__dictionary: Dictionary | None = None
         self.__session_repo: SessionRepository | None = None
         self.__session: Session | None = None
+        self.dictionary_storage = dictionary_storage
+        self.session_storage = session_storage
+        self.stats_storage = stats_storage
 
     def get_user_repo(self) -> UserRepository:
         return self.__user_repo
