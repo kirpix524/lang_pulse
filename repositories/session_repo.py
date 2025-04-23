@@ -6,21 +6,27 @@ from storage.interfaces import ISessionStorage
 
 
 class SessionRepository:
-    def __init__(self, user: User, language: Language, storage: ISessionStorage, dictionary: Dictionary):
-        self.__storage = storage
-        self.__user = user
-        self.__language = language
-        self.__dictionary = dictionary
-        self.__sessions: list[Session] = self.__storage.load_all_sessions(user, language, dictionary)
+    def __init__(self, storage: ISessionStorage):
+        self._storage = storage
+        self._user = None
+        self._language = None
+        self._dictionary = None
+        self._sessions: list[Session] = []
 
     def __get_new_session_id(self) -> int:
-        return max((session.get_id() for session in self.__sessions), default=0) + 1
+        return max((session.get_id() for session in self._sessions), default=0) + 1
 
     def new_session(self) -> Session:
-        session = Session(self.__user, self.__language, self.__get_new_session_id(), [])
-        self.__sessions.append(session)
-        self.__storage.save_all_sessions(self.__user, self.__language, self.__sessions)
+        session = Session(self._user, self._language, self.__get_new_session_id(), [])
+        self._sessions.append(session)
+        self._storage.save_all_sessions(self._user, self._language, self._sessions)
         return session
 
     def get_sessions(self) -> list[Session]:
-        return self.__sessions
+        return self._sessions
+
+    def set_session_scope(self, user:User, language:Language, dictionary:Dictionary) -> None:
+        self._user = user
+        self._language = language
+        self._dictionary = dictionary
+        self._sessions = self._storage.load_all_sessions(user, language, dictionary)

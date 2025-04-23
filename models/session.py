@@ -141,7 +141,6 @@ class Training:
 
         self.__stats.append(stat)
 
-
 class Session:
     def __init__(self, user: User, language: Language, session_id: int, words: list[IBasicWord]):
         self.__user = user

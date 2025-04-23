@@ -14,3 +14,6 @@ def create_file_storage():
         "sessions": SessionFileStorage(config.SESSIONS_DATA),
         "stats": StatsFileStorage(config.STATS_DATA)
     }
+
+def create_storage():
+    return create_file_storage()

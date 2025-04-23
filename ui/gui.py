@@ -242,8 +242,8 @@ class LoginScreen(BaseScreen):
 
                 self.state.set_dictionary(self.state.dictionary_storage.load_dictionary(self.state.get_user(), self.state.get_language()))
                 self.state.stats_storage.load_training_stats_words(self.state.get_user(), self.state.get_language(), self.state.get_dictionary())
-                self.state.set_session_repo(SessionRepository(self.state.get_user(), self.state.get_language(), self.state.session_storage, self.state.get_dictionary()))
-                self.manager.current = 'main_menu'
+                self.state.get_session_repo().set_session_scope(self.state.get_user(), self.state.get_language(), self.state.get_dictionary())
+                self.goto_screen('main_menu')
             else:
                 show_message("Ошибка",'Нужно выбрать язык')
         else:

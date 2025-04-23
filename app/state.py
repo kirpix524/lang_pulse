@@ -6,7 +6,7 @@ from repositories.lang_repo import LanguageRepository
 from repositories.session_repo import SessionRepository
 from repositories.user_repo import UserRepository
 from storage.interfaces import IDictionaryStorage, ISessionStorage, IStatsStorage, IUserStorage, ILanguageStorage
-from storage.factory import create_file_storage
+from storage.factory import create_storage
 
 class AppState:
     user_storage: IUserStorage
@@ -16,7 +16,7 @@ class AppState:
     stats_storage: IStatsStorage
 
     def __init__(self):
-        storage = create_file_storage()
+        storage = create_storage()
         self.dictionary_storage = storage["dictionaries"]
         self.session_storage = storage["sessions"]
         self.stats_storage = storage["stats"]
@@ -24,10 +24,10 @@ class AppState:
         self.language_storage = storage["languages"]
         self.__user_repo = UserRepository(self.user_storage)
         self.__lang_repo = LanguageRepository(self.language_storage)
+        self.__session_repo = SessionRepository(self.session_storage)
         self.__user: User | None = None
         self.__language: Language | None = None
         self.__dictionary: Dictionary | None = None
-        self.__session_repo: SessionRepository | None = None
         self.__session: Session | None = None
 
 
