@@ -17,6 +17,9 @@ SESSIONS_DATA = {"DIRECTORY": config["sessions_directory"],
 STATS_DATA = {"DIRECTORY": config["stats_directory"],
               "FILE_NAME_PREFIX": config["stats_file_name_prefix"]}
 
+WORD_REPO_DATA = {"DIRECTORY": config["words_directory"],
+                  "FILE_NAME_PREFIX": config["words_file_name_prefix"]}
+
 TRAINING_DIRECTIONS = config.get("training_directions", [])
 TrainingDirection = Enum("TrainingDirection", {name.upper(): name for name in TRAINING_DIRECTIONS})
 def get_direction_name(direction: TrainingDirection) -> str:

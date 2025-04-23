@@ -4,6 +4,8 @@ from models.dictionary import Dictionary
 from models.language import Language
 from models.session import Session, Training
 from models.user import User
+from models.user_word import IBasicUserWord
+from models.word import IBasicWord
 
 
 class IUserStorage:
@@ -25,6 +27,16 @@ class ILanguageStorage:
     def save_language_list(self, language_list: list[Language]) -> None:
         pass
 
+class IWordStorage:
+    @abstractmethod
+    def load_word_list(self, language: Language) -> list[IBasicUserWord]:
+        pass
+
+    def save_word_list(self, words: list[IBasicWord], language: Language) -> None:
+        pass
+
+    def save_word(self, word: IBasicWord, language: Language) -> None:
+        pass
 
 class IDictionaryStorage:
     @abstractmethod

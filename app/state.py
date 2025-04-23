@@ -5,6 +5,7 @@ from models.dictionary import Dictionary
 from repositories.lang_repo import LanguageRepository
 from repositories.session_repo import SessionRepository
 from repositories.user_repo import UserRepository
+from repositories.word_repo import WordRepository
 from storage.interfaces import IDictionaryStorage, ISessionStorage, IStatsStorage, IUserStorage, ILanguageStorage
 from storage.factory import create_storage
 
@@ -22,8 +23,10 @@ class AppState:
         self.stats_storage = storage["stats"]
         self.user_storage = storage["users"]
         self.language_storage = storage["languages"]
+        self.words_storage = storage["words"]
         self.__user_repo = UserRepository(self.user_storage)
         self.__lang_repo = LanguageRepository(self.language_storage)
+        self.__word_repo = WordRepository(self.words_storage)
         self.__session_repo = SessionRepository(self.session_storage)
         self.__user: User | None = None
         self.__language: Language | None = None

@@ -15,7 +15,7 @@ from kivy.uix.widget import Widget
 from kivy.graphics import Color, RoundedRectangle
 
 import app.config as config
-from models.dictionary import IBasicWord
+from models.user_word import IBasicUserWord
 from models.session import Session
 from repositories.session_repo import SessionRepository
 from app.state import AppState
@@ -565,7 +565,7 @@ class SessionTrainingScreen(BaseScreen):
 class WordStatsScreen(BaseScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.__words_for_stats: list[IBasicWord] = []
+        self.__words_for_stats: list[IBasicUserWord] = []
         self.__stats_user = None
         self.__stats_language = None
 
@@ -625,7 +625,7 @@ class WordStatsScreen(BaseScreen):
             for stat in stats:
                 container.add_widget(self.create_stat_row(stat))
 
-    def create_word_row(self, word: IBasicWord):
+    def create_word_row(self, word: IBasicUserWord):
         row = BoxLayout(orientation='horizontal', size_hint_y=None, height=30, spacing=5)
 
         row.add_widget(Label(text=word.word, font_size='18sp', bold=True, color=(0, 0, 0, 1), size_hint_x=None, width=100, size_hint_y=None, height=30))

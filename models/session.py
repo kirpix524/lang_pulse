@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import time
 from datetime import datetime
 import random
-from models.dictionary import IBasicWord
+from models.user_word import IBasicUserWord
 from models.language import Language
 from models.user import User
 from models.stats import StatsRow
@@ -10,25 +10,25 @@ from app.config import TrainingDirection
 
 class WordHandlingStrategy(ABC):
     @abstractmethod
-    def handle_remembered(self, training: 'Training', word: IBasicWord) -> None:
+    def handle_remembered(self, training: 'Training', word: IBasicUserWord) -> None:
         pass
 
     @abstractmethod
-    def handle_forgotten(self, training: 'Training', word: IBasicWord) -> None:
+    def handle_forgotten(self, training: 'Training', word: IBasicUserWord) -> None:
         pass
 
     @abstractmethod
-    def handle_pop_word(self, training: 'Training', word: IBasicWord) -> None:
+    def handle_pop_word(self, training: 'Training', word: IBasicUserWord) -> None:
         pass
 
 class DefaultWordHandlingStrategy(WordHandlingStrategy):
-    def handle_remembered(self, training: 'Training', word: IBasicWord):
+    def handle_remembered(self, training: 'Training', word: IBasicUserWord):
         training._fix_stats(word, True)
         if word in training._active_words:
             training._active_words.remove(word)
         training._current_word = None
 
-    def handle_forgotten(self, training: 'Training', word: IBasicWord):
+    def handle_forgotten(self, training: 'Training', word: IBasicUserWord):
         training._fix_stats(word, False)
         if word in training._active_words:
             training._active_words.remove(word)
@@ -37,7 +37,7 @@ class DefaultWordHandlingStrategy(WordHandlingStrategy):
             training._active_words.insert(insert_pos, word)
         training._current_word = None
 
-    def handle_pop_word(self, training: 'Training', word: IBasicWord):
+    def handle_pop_word(self, training: 'Training', word: IBasicUserWord):
         training._fix_stats(word, True)
         if word in training._active_words:
             training._active_words.remove(word)
@@ -47,7 +47,7 @@ class Training:
     def __init__(self,
                  direction: TrainingDirection,
                  interval: float,
-                 words: list[IBasicWord],
+                 words: list[IBasicUserWord],
                  training_id: int,
                  session_id: int,
                  strategy: WordHandlingStrategy = DefaultWordHandlingStrategy(),
@@ -90,7 +90,7 @@ class Training:
     def get_id(self) -> int:
         return self.__training_id
 
-    def get_next_word(self) -> IBasicWord | None:
+    def get_next_word(self) -> IBasicUserWord | None:
         if not self._active_words:
             self.__current_word = None
             return None
@@ -112,7 +112,7 @@ class Training:
     def is_complete(self) -> bool:
         return len(self._active_words) == 0
 
-    def get_current_word(self) -> IBasicWord | None:
+    def get_current_word(self) -> IBasicUserWord | None:
         return self.__current_word
 
     def init_word_tracking(self) -> None:
@@ -122,7 +122,7 @@ class Training:
     def get_stats(self) -> list[StatsRow]:
         return self.__stats
 
-    def _fix_stats(self, word: IBasicWord, success: bool) -> None:
+    def _fix_stats(self, word: IBasicUserWord, success: bool) -> None:
         if not word:
             return
 
@@ -142,7 +142,7 @@ class Training:
         self.__stats.append(stat)
 
 class Session:
-    def __init__(self, user: User, language: Language, session_id: int, words: list[IBasicWord]):
+    def __init__(self, user: User, language: Language, session_id: int, words: list[IBasicUserWord]):
         self.__user = user
         self.__language = language
         self.__session_id = session_id
@@ -175,15 +175,15 @@ class Session:
     def get_trainings(self) -> list[Training]:
         return self.__trainings
 
-    def add_words(self, words: list[IBasicWord]) -> None:
+    def add_words(self, words: list[IBasicUserWord]) -> None:
         for word in words:
             self.__words.append(word)
 
-    def del_words(self, words: list[IBasicWord]) -> None:
+    def del_words(self, words: list[IBasicUserWord]) -> None:
         for word in words:
             self.__words.remove(word)
 
-    def get_words(self) -> list[IBasicWord]:
+    def get_words(self) -> list[IBasicUserWord]:
         return self.__words
 
     def get_id(self) -> int:

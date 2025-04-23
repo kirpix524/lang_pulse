@@ -1,8 +1,9 @@
 from datetime import datetime
 from pathlib import Path
 
-from models import EnglishWord
-from models.dictionary import Dictionary, IBasicWord
+from models import EnglishUserWord
+from models.dictionary import Dictionary
+from models.user_word import IBasicUserWord
 from models.language import Language
 from models.user import User
 from storage.interfaces import IDictionaryStorage
@@ -21,7 +22,7 @@ class DictionaryFileStorage(IDictionaryStorage):
     def load_dictionary(self, user: User, language: Language) -> Dictionary:
         dictionary = Dictionary(user, language)
         dictionary_file_name = self.__get_dictionary_file_name(user, language)
-        words: list[IBasicWord] = []
+        words: list[IBasicUserWord] = []
         try:
             with open(dictionary_file_name, "r", encoding="utf-8") as file:
                 for line in file:
@@ -31,7 +32,7 @@ class DictionaryFileStorage(IDictionaryStorage):
                         added_at = datetime.fromisoformat(added_at)
                     else:
                         added_at = datetime.now()
-                    words.append(EnglishWord(word, translation, transcription, added_at))
+                    words.append(EnglishUserWord(word, translation, transcription, added_at))
         except FileNotFoundError:
             print(f"Файл {dictionary_file_name} не найден. Будет создан при сохранении.")
         dictionary.set_words(words)
