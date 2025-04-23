@@ -5,8 +5,8 @@ import random
 from models.dictionary import IBasicWord
 from models.language import Language
 from models.user import User
-from stats.stats import StatsRow
-from storage.config import TrainingDirection
+from models.stats import StatsRow
+from app.config import TrainingDirection
 
 class WordHandlingStrategy(ABC):
     @abstractmethod

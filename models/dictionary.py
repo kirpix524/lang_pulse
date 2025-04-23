@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from models.language import Language
 from models.user import User
-from stats.stats import StatsRow
+from models.stats import StatsRow
 from datetime import datetime
 
 class IBasicWord:

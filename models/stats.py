@@ -1,5 +1,5 @@
 from datetime import datetime
-from storage.config import TrainingDirection, get_direction_name
+from app.config import TrainingDirection, get_direction_name
 
 class StatsRow:
     def __init__(

@@ -1,13 +1,13 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from datetime import datetime
 from models.language import Language
 from models.user import User
 from models.dictionary import EnglishWord, Dictionary, IBasicWord
 from models.session import Session, Training
-from storage.config import TrainingDirection
-import storage.config as config
-from stats.stats import StatsRow
+from app.config import TrainingDirection
+import app.config as config
+from models.stats import StatsRow
 
 class IUserStorage:
     @abstractmethod

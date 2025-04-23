@@ -14,13 +14,13 @@ from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, RoundedRectangle
 
-import storage.config as config
-from models.dictionary import EnglishWord, IBasicWord
+import app.config as config
+from models.dictionary import IBasicWord
 from models.session import Session
-from storage.session_repo import SessionRepository
-from models.app import AppState
-from storage.config import TrainingDirection
-from stats.stats import StatsRow
+from repositories.session_repo import SessionRepository
+from app.state import AppState
+from app.config import TrainingDirection
+from models.stats import StatsRow
 
 
 def show_message(title: str, message: str):

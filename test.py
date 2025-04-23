@@ -1,4 +1,4 @@
-from storage.lang_repo import LanguageRepository
+from repositories.lang_repo import LanguageRepository
 
 lang_repo=LanguageRepository()
 

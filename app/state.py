@@ -2,9 +2,9 @@ from models.session import Session
 from models.user import User
 from models.language import Language
 from models.dictionary import Dictionary
-from storage.lang_repo import LanguageRepository
-from storage.session_repo import SessionRepository
-from storage.user_repo import UserRepository
+from repositories.lang_repo import LanguageRepository
+from repositories.session_repo import SessionRepository
+from repositories.user_repo import UserRepository
 from storage.db import user_storage, language_storage, dictionary_storage, session_storage, stats_storage, \
     IDictionaryStorage, ISessionStorage, IStatsStorage
 
