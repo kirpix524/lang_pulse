@@ -3,7 +3,7 @@ from abc import abstractmethod, ABC
 
 
 class IBasicWord(ABC):
-    word: str
+    term: str
     translation: str
 
     @classmethod
@@ -17,7 +17,7 @@ class IBasicWord(ABC):
 
 class BasicWord(IBasicWord):
     def __init__(self, word, translation):
-        self.word = word
+        self.term = word
         self.translation = translation
 
     @classmethod
@@ -27,7 +27,7 @@ class BasicWord(IBasicWord):
         return cls(word, translation)
 
     def to_line(self) -> str:
-        return f"{self.word}|{self.translation}"
+        return f"{self.term}|{self.translation}"
 
 class EnglishWord(BasicWord):
     def __init__(self, word, translation, transcription=None):
@@ -41,4 +41,4 @@ class EnglishWord(BasicWord):
         return cls(word, translation, transcription)
 
     def to_line(self) -> str:
-        return f"{self.word}|{self.translation}|{self.transcription}"
+        return f"{self.term}|{self.translation}|{self.transcription}"

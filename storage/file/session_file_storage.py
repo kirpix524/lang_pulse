@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 
 from app.config import TrainingDirection
-from models.dictionary import Dictionary
+from models.user_dictionary import UserDictionary
 from models.language import Language
 from models.session import Session
 from models.user import User
@@ -19,7 +19,7 @@ class SessionFileStorage(ISessionStorage):
         Path(file_path).parent.mkdir(parents=True, exist_ok=True)
         return file_path
 
-    def load_all_sessions(self, user: User, language: Language, dictionary: Dictionary) -> list[Session]:
+    def load_all_sessions(self, user: User, language: Language, dictionary: UserDictionary) -> list[Session]:
         sessions_file = self.__get_sessions_file_name(user, language)
         sessions: dict[int, Session] = {}
 

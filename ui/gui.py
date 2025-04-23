@@ -141,7 +141,7 @@ class ChooseWordsPopup(Popup):
             self.checkboxes[word] = cb
             grid.add_widget(cb)
 
-            grid.add_widget(Label(text=word.word, size_hint_x=None, width=150))
+            grid.add_widget(Label(text=word.term, size_hint_x=None, width=150))
             grid.add_widget(Label(text=word.get_transcription(), size_hint_x=None, width=150))
             grid.add_widget(Label(text=word.translation, size_hint_x=None, width=150))
             grid.add_widget(Label(text=word.get_added_at_str(), size_hint_x=None, width=100))

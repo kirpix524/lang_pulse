@@ -1,4 +1,4 @@
-from models.dictionary import Dictionary
+from models.user_dictionary import UserDictionary
 from models.language import Language
 from models.session import Session
 from models.user import User
@@ -25,7 +25,7 @@ class SessionRepository:
     def get_sessions(self) -> list[Session]:
         return self._sessions
 
-    def set_session_scope(self, user:User, language:Language, dictionary:Dictionary) -> None:
+    def set_session_scope(self, user:User, language:Language, dictionary:UserDictionary) -> None:
         self._user = user
         self._language = language
         self._dictionary = dictionary

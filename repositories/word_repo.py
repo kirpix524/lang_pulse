@@ -17,8 +17,8 @@ class WordRepository:
                                        **kwargs)
         self._words.append(word)
 
-    def find_word(self, word, translation) -> IBasicWord | None:
+    def find_word(self, term, translation) -> IBasicWord | None:
         for w in self._words:
-            if w.word == word and w.translation == translation:
+            if w.term == term and w.translation == translation:
                 return w
         return None

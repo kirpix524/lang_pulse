@@ -1,11 +1,12 @@
 from abc import abstractmethod
 
-from models.dictionary import Dictionary
+from models.user_dictionary import UserDictionary
 from models.language import Language
 from models.session import Session, Training
 from models.user import User
 from models.user_word import IBasicUserWord
 from models.word import IBasicWord
+from repositories.word_repo import WordRepository
 
 
 class IUserStorage:
@@ -40,17 +41,17 @@ class IWordStorage:
 
 class IDictionaryStorage:
     @abstractmethod
-    def load_dictionary(self, user: User, language: Language) -> Dictionary:
+    def load_dictionary(self, user: User, language: Language, word_repo: WordRepository) -> UserDictionary:
         pass
 
     @abstractmethod
-    def save_dictionary(self, dictionary: Dictionary) -> None:
+    def save_dictionary(self, dictionary: UserDictionary) -> None:
         pass
 
 
 class ISessionStorage:
     @abstractmethod
-    def load_all_sessions(self, user: User, language: Language, dictionary: Dictionary) -> list[Session]:
+    def load_all_sessions(self, user: User, language: Language, dictionary: UserDictionary) -> list[Session]:
         pass
 
     @abstractmethod
@@ -64,5 +65,5 @@ class IStatsStorage:
         pass
 
     @abstractmethod
-    def load_training_stats_words(self, user: User, language: Language, dictionary: Dictionary):
+    def load_training_stats_words(self, user: User, language: Language, dictionary: UserDictionary):
         pass

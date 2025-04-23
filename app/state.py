@@ -1,7 +1,7 @@
 from models.session import Session
 from models.user import User
 from models.language import Language
-from models.dictionary import Dictionary
+from models.user_dictionary import UserDictionary
 from repositories.lang_repo import LanguageRepository
 from repositories.session_repo import SessionRepository
 from repositories.user_repo import UserRepository
@@ -30,7 +30,7 @@ class AppState:
         self.__session_repo = SessionRepository(self.session_storage)
         self.__user: User | None = None
         self.__language: Language | None = None
-        self.__dictionary: Dictionary | None = None
+        self.__dictionary: UserDictionary | None = None
         self.__session: Session | None = None
 
 
@@ -52,10 +52,10 @@ class AppState:
     def get_language(self) -> Language:
         return self.__language
 
-    def set_dictionary(self, dictionary: Dictionary) -> None:
+    def set_dictionary(self, dictionary: UserDictionary) -> None:
         self.__dictionary = dictionary
 
-    def get_dictionary(self) -> Dictionary:
+    def get_dictionary(self) -> UserDictionary:
         return self.__dictionary
 
     def set_session_repo(self, session_repo: SessionRepository) -> None:

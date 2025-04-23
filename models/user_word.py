@@ -2,11 +2,11 @@ from abc import abstractmethod
 from datetime import datetime
 
 from models.stats import StatsRow
+from models.word import IBasicWord
 
 
 class IBasicUserWord:
-    word: str
-    translation: str
+    word: IBasicWord
     @abstractmethod
     def get_start_time(self) -> float:
         pass
@@ -32,10 +32,6 @@ class IBasicUserWord:
         pass
 
     @abstractmethod
-    def get_transcription(self) -> str:
-        pass
-
-    @abstractmethod
     def add_stat(self, stat: StatsRow) -> None:
         pass
 
@@ -45,10 +41,8 @@ class IBasicUserWord:
 
 
 class BasicUserWord(IBasicUserWord):
-    def __init__(self, word, translation, transcription=None, added_at: datetime=None):
+    def __init__(self, word: IBasicWord, added_at: datetime=None):
         self.word = word
-        self.translation = translation
-        self.__transcription = transcription
         self.__added_at = added_at
         self.__start_time = None
         self.__stats: list[StatsRow] = []
@@ -79,16 +73,8 @@ class BasicUserWord(IBasicUserWord):
             return ''
         return last_repeated_at.strftime(fmt)
 
-    def get_transcription(self):
-        return self.__transcription if self.__transcription else ''
-
     def add_stat(self, stat: StatsRow):
         self.__stats.append(stat)
 
     def get_stats(self) -> list[StatsRow]:
         return self.__stats
-
-
-class EnglishUserWord(BasicUserWord):
-    def __init__(self, word, translation, transcription=None, added_at=None):
-        super().__init__(word, translation, transcription=transcription, added_at=added_at)

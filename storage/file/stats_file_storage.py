@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 
 from app.config import TrainingDirection
-from models.dictionary import Dictionary
+from models.user_dictionary import UserDictionary
 from models.language import Language
 from models.session import Session, Training
 from models.stats import StatsRow
@@ -41,7 +41,7 @@ class StatsFileStorage(IStatsStorage):
                 ])
                 f.write(line + "\n")
 
-    def load_training_stats_words(self, user: User, language: Language, dictionary: Dictionary):
+    def load_training_stats_words(self, user: User, language: Language, dictionary: UserDictionary):
         def parse_direction(value: str) -> TrainingDirection | None:
             try:
                 return TrainingDirection(value)
