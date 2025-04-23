@@ -1,5 +1,5 @@
 from models.language import Language
-from storage.db import ILanguageStorage
+from storage.interfaces import ILanguageStorage
 
 
 class LanguageRepository:
@@ -8,11 +8,11 @@ class LanguageRepository:
         self.languages: list[Language] = self.__storage.load_language_list()
 
     def __get_new_language_id(self):
-        return len(self.languages)
+        return max((lang.lang_id for lang in self.languages), default=0) + 1
 
     def add_language(self, lang_name: str, lang_code:str) -> None:
         self.languages.append(Language(self.__get_new_language_id(), lang_name, lang_code))
-        db.save_language_list(self.languages)
+        self.__storage.save_language_list(self.languages)
 
     def language_exists(self, lang_name: str) -> bool:
         return any(language.lang_name == lang_name for language in self.languages)

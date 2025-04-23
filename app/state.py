@@ -5,26 +5,31 @@ from models.dictionary import Dictionary
 from repositories.lang_repo import LanguageRepository
 from repositories.session_repo import SessionRepository
 from repositories.user_repo import UserRepository
-from storage.db import user_storage, language_storage, dictionary_storage, session_storage, stats_storage, \
-    IDictionaryStorage, ISessionStorage, IStatsStorage
-
+from storage.interfaces import IDictionaryStorage, ISessionStorage, IStatsStorage, IUserStorage, ILanguageStorage
+from storage.factory import create_file_storage
 
 class AppState:
+    user_storage: IUserStorage
+    language_storage: ILanguageStorage
     dictionary_storage: IDictionaryStorage
     session_storage: ISessionStorage
     stats_storage: IStatsStorage
 
     def __init__(self):
-        self.__user_repo = UserRepository(user_storage)
-        self.__lang_repo = LanguageRepository(language_storage)
+        storage = create_file_storage()
+        self.dictionary_storage = storage["dictionaries"]
+        self.session_storage = storage["sessions"]
+        self.stats_storage = storage["stats"]
+        self.user_storage = storage["users"]
+        self.language_storage = storage["languages"]
+        self.__user_repo = UserRepository(self.user_storage)
+        self.__lang_repo = LanguageRepository(self.language_storage)
         self.__user: User | None = None
         self.__language: Language | None = None
         self.__dictionary: Dictionary | None = None
         self.__session_repo: SessionRepository | None = None
         self.__session: Session | None = None
-        self.dictionary_storage = dictionary_storage
-        self.session_storage = session_storage
-        self.stats_storage = stats_storage
+
 
     def get_user_repo(self) -> UserRepository:
         return self.__user_repo
