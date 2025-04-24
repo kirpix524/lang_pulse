@@ -22,3 +22,6 @@ class WordRepository:
             if w.term == term and w.translation == translation:
                 return w
         return None
+
+    def get_words(self) -> list[IBasicWord]:
+        return self._words

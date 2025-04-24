@@ -10,18 +10,11 @@ from kivy.uix.label import Label
 import app.config as config
 from app.state import AppState
 from app.context import AppContext
-from ui.popups.message_popup import MessagePopup
-from ui.screens.login_screen import LoginScreen
-from ui.screens.main_menu_screen import MainMenuScreen
-from ui.screens.register_screen import RegisterScreen
-from ui.screens.session_list_screen import SessionListScreen
-from ui.screens.session_screen import SessionScreen
-from ui.screens.training_screen import TrainingScreen
-from ui.screens.user_dictionary_screen import UserDictionaryScreen
-from ui.screens.word_stats_screen import WordStatsScreen
+
 
 
 def show_message(title: str, message: str):
+    from ui.popups.message_popup import MessagePopup
     popup = MessagePopup()
     popup.set_message(message)
     popup.set_title(title)
@@ -47,10 +40,22 @@ def load_all_kv_files(directory: str):
 # Менеджер экранов
 class LangPulseApp(App):
     def register_screens(self):
+        from ui.screens.dictionary_screen import DictionaryScreen
+        from ui.screens.login_screen import LoginScreen
+        from ui.screens.main_menu_screen import MainMenuScreen
+        from ui.screens.register_screen import RegisterScreen
+        from ui.screens.session_list_screen import SessionListScreen
+        from ui.screens.session_screen import SessionScreen
+        from ui.screens.training_screen import TrainingScreen
+        from ui.screens.user_dictionary_screen import UserDictionaryScreen
+        from ui.screens.word_stats_screen import WordStatsScreen
+
+
         self.sm.add_widget(LoginScreen(name='login'))
         self.sm.add_widget(RegisterScreen(name='register'))
         self.sm.add_widget(MainMenuScreen(name='main_menu'))
-        self.sm.add_widget(UserDictionaryScreen(name='dictionary'))
+        self.sm.add_widget(UserDictionaryScreen(name='user_dictionary'))
+        self.sm.add_widget(DictionaryScreen(name='dictionary'))
         self.sm.add_widget(SessionListScreen(name='session_list'))
         self.sm.add_widget(SessionScreen(name='session'))
         self.sm.add_widget(TrainingScreen(name='session_training'))

@@ -2,25 +2,25 @@ from abc import ABC, abstractmethod
 
 from kivy.uix.label import Label
 
-from models.user_word import IBasicUserWord, EnglishUserWord
+from models.word import IBasicWord, EnglishWord
 from ui.types import SupportsAddWidget
 
 
-class IUserDictionaryWordRowRenderer(ABC):
+class IDictionaryWordRowRenderer(ABC):
     @abstractmethod
     def render_headers(self, container: SupportsAddWidget):
         pass
 
     @abstractmethod
-    def render_word_row(self, container: SupportsAddWidget, user_word: IBasicUserWord):
+    def render_word_row(self, container: SupportsAddWidget, user_word: IBasicWord):
         pass
 
     @abstractmethod
     def get_column_count(self) -> int: pass
 
-class BasicUserDictionaryWordRowRenderer(IUserDictionaryWordRowRenderer):
+class BasicDictionaryWordRowRenderer(IDictionaryWordRowRenderer):
     def render_headers(self, container):
-        headers = ["Слово", "Перевод", "Добавлено", "Последнее повторение"]
+        headers = ["Слово", "Перевод"]
         for title in headers:
             container.add_widget(Label(
                 text=title,
@@ -32,9 +32,7 @@ class BasicUserDictionaryWordRowRenderer(IUserDictionaryWordRowRenderer):
                 width=150
             ))
 
-    def render_word_row(self, container, user_word):
-        word = user_word.word
-
+    def render_word_row(self, container, word):
         container.add_widget(Label(
             text=word.term,
             bold=True,
@@ -53,31 +51,13 @@ class BasicUserDictionaryWordRowRenderer(IUserDictionaryWordRowRenderer):
             size_hint_x=None,
             width=150
         ))
-        container.add_widget(Label(
-            text=user_word.get_added_at_str(),
-            bold=True,
-            color=(0, 0, 0, 1),
-            size_hint_y=None,
-            height=30,
-            size_hint_x=None,
-            width=150
-        ))
-        container.add_widget(Label(
-            text=user_word.get_last_repeated_at_str(),
-            bold=True,
-            color=(0, 0, 0, 1),
-            size_hint_y=None,
-            height=30,
-            size_hint_x=None,
-            width=150
-        ))
 
     def get_column_count(self) -> int:
-        return 4
+        return 2
 
-class EnglishUserDictionaryWordRowRenderer(BasicUserDictionaryWordRowRenderer):
+class EnglishDictionaryWordRowRenderer(BasicDictionaryWordRowRenderer):
     def render_headers(self, container):
-        headers = ["Слово", "Транскрипция", "Перевод", "Добавлено", "Последнее повторение"]
+        headers = ["Слово", "Транскрипция", "Перевод"]
         for title in headers:
             container.add_widget(Label(
                 text=title,
@@ -89,9 +69,7 @@ class EnglishUserDictionaryWordRowRenderer(BasicUserDictionaryWordRowRenderer):
                 width=150
             ))
 
-    def render_word_row(self, container, user_word: EnglishUserWord):
-        word = user_word.word
-
+    def render_word_row(self, container, word: EnglishWord):
         container.add_widget(Label(
             text=word.term,
             bold=True,
@@ -119,24 +97,6 @@ class EnglishUserDictionaryWordRowRenderer(BasicUserDictionaryWordRowRenderer):
             size_hint_x=None,
             width=150
         ))
-        container.add_widget(Label(
-            text=user_word.get_added_at_str(),
-            bold=True,
-            color=(0, 0, 0, 1),
-            size_hint_y=None,
-            height=30,
-            size_hint_x=None,
-            width=150
-        ))
-        container.add_widget(Label(
-            text=user_word.get_last_repeated_at_str(),
-            bold=True,
-            color=(0, 0, 0, 1),
-            size_hint_y=None,
-            height=30,
-            size_hint_x=None,
-            width=150
-        ))
 
     def get_column_count(self) -> int:
-        return 5
+        return 3

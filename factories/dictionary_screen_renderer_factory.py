@@ -1,5 +1,4 @@
-from ui.renderers.user_dictionary_renderers import IDictionaryWordRowRenderer, BasicDictionaryWordRowRenderer
-
+from ui.renderers.dictionary_renderers import IDictionaryWordRowRenderer, BasicDictionaryWordRowRenderer
 
 class DictionaryWordRowRendererFactory:
     __registry: dict[str, type[IDictionaryWordRowRenderer]] = {}

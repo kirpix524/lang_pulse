@@ -19,11 +19,19 @@
 
             Button:
                 id: show_dictionary_button
-                text: 'Показать словарь'
+                text: 'Показать общий словарь'
                 color: 0, 0, 0, 1
                 size_hint_y: None
                 height: 40
                 on_press: root.goto_screen('dictionary')
+
+            Button:
+                id: show_user_dictionary_button
+                text: 'Показать словарь пользователя'
+                color: 0, 0, 0, 1
+                size_hint_y: None
+                height: 40
+                on_press: root.goto_screen('user_dictionary')
 
             Button:
                 text: 'Показать тренировки'

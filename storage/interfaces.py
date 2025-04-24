@@ -1,15 +1,17 @@
-from abc import abstractmethod
-
-from models.user_dictionary import UserDictionary
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 from models.language import Language
 from models.session import Session, Training
 from models.user import User
 from models.user_word import IBasicUserWord
 from models.word import IBasicWord
-from repositories.word_repo import WordRepository
+
+if TYPE_CHECKING:
+    from models.user_dictionary import UserDictionary
+    from repositories.word_repo import WordRepository
 
 
-class IUserStorage:
+class IUserStorage(ABC):
     @abstractmethod
     def load_user_list(self) -> list[User]:
         pass
@@ -19,7 +21,7 @@ class IUserStorage:
         pass
 
 
-class ILanguageStorage:
+class ILanguageStorage(ABC):
     @abstractmethod
     def load_language_list(self) -> list[Language]:
         pass
@@ -28,30 +30,34 @@ class ILanguageStorage:
     def save_language_list(self, language_list: list[Language]) -> None:
         pass
 
-class IWordStorage:
+
+class IWordStorage(ABC):
     @abstractmethod
     def load_word_list(self, language: Language) -> list[IBasicUserWord]:
         pass
 
+    @abstractmethod
     def save_word_list(self, words: list[IBasicWord], language: Language) -> None:
         pass
 
+    @abstractmethod
     def save_word(self, word: IBasicWord, language: Language) -> None:
         pass
 
-class IUserDictionaryStorage:
+
+class IUserDictionaryStorage(ABC):
     @abstractmethod
-    def load_dictionary(self, user: User, language: Language, word_repo: WordRepository) -> UserDictionary:
+    def load_dictionary(self, user: User, language: Language, word_repo: "WordRepository") -> "UserDictionary":
         pass
 
     @abstractmethod
-    def save_dictionary(self, dictionary: UserDictionary) -> None:
+    def save_dictionary(self, dictionary: "UserDictionary") -> None:
         pass
 
 
-class ISessionStorage:
+class ISessionStorage(ABC):
     @abstractmethod
-    def load_all_sessions(self, user: User, language: Language, dictionary: UserDictionary) -> list[Session]:
+    def load_all_sessions(self, user: User, language: Language, dictionary: "UserDictionary") -> list[Session]:
         pass
 
     @abstractmethod
@@ -59,11 +65,11 @@ class ISessionStorage:
         pass
 
 
-class IStatsStorage:
+class IStatsStorage(ABC):
     @abstractmethod
-    def save_training_stats(self, session: Session, training: Training):
+    def save_training_stats(self, session: Session, training: Training) -> None:
         pass
 
     @abstractmethod
-    def load_training_stats_words(self, user: User, language: Language, dictionary: UserDictionary):
+    def load_training_stats_words(self, user: User, language: Language, dictionary: "UserDictionary") -> None:
         pass
