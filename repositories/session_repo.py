@@ -25,7 +25,7 @@ class SessionRepository:
     def get_sessions(self) -> list[Session]:
         return self._sessions
 
-    def set_session_scope(self, user:User, language:Language, dictionary:UserDictionary) -> None:
+    def set_session_context(self, user:User, language:Language, dictionary:UserDictionary) -> None:
         self._user = user
         self._language = language
         self._dictionary = dictionary

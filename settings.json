@@ -7,7 +7,7 @@
   "words_directory": "data/dictionary/",
   "words_file_name_prefix" : "dictionary",
   "logs_directory" : "data/logs/",
-  "layouts_directory" : "layouts/",
+  "layouts_directory" : "ui/layouts/",
   "sessions_directory" : "data/sessions/",
   "sessions_file_name_prefix" : "sessions",
   "stats_directory" : "data/stats/",

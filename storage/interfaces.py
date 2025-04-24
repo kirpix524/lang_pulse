@@ -39,7 +39,7 @@ class IWordStorage:
     def save_word(self, word: IBasicWord, language: Language) -> None:
         pass
 
-class IDictionaryStorage:
+class IUserDictionaryStorage:
     @abstractmethod
     def load_dictionary(self, user: User, language: Language, word_repo: WordRepository) -> UserDictionary:
         pass

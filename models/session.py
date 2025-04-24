@@ -52,18 +52,18 @@ class Training:
                  session_id: int,
                  strategy: WordHandlingStrategy = DefaultWordHandlingStrategy(),
                  need_shuffle: bool = True):
-        self.__direction = direction
-        self.__interval = interval
-        self.__training_date_time = datetime.now()
-        self.__training_id = training_id
-        self.__session_id = session_id
+        self.__direction: TrainingDirection = direction
+        self.__interval: float = interval
+        self.__training_date_time: datetime = datetime.now()
+        self.__training_id: int = training_id
+        self.__session_id: int = session_id
 
-        self._active_words = words.copy()
+        self._active_words: list[IBasicUserWord] = words.copy()
         if need_shuffle:
             random.shuffle(self._active_words)
-        self.__current_word = None
+        self.__current_word: IBasicUserWord | None = None
         self.__stats: list[StatsRow] = []
-        self.__strategy = strategy
+        self.__strategy: WordHandlingStrategy = strategy
 
 
     def get_direction(self) -> TrainingDirection:
@@ -129,8 +129,8 @@ class Training:
         elapsed = time.time() - word.get_start_time() if success else None
 
         stat = StatsRow(
-            word=word.word,
-            translation=word.translation,
+            word=word.word.term,
+            translation=word.word.translation,
             session_id=self.__session_id,
             training_id=self.__training_id,
             success=success,

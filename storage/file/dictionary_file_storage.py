@@ -6,10 +6,10 @@ from models.user_word import IBasicUserWord, BasicUserWord
 from models.language import Language
 from models.user import User
 from repositories.word_repo import WordRepository
-from storage.interfaces import IDictionaryStorage
+from storage.interfaces import IUserDictionaryStorage
 
 
-class DictionaryFileStorage(IDictionaryStorage):
+class UserDictionaryFileStorage(IUserDictionaryStorage):
     def __init__(self, dictionary_data: dict[str, str]):
         self.__dictionary_data = dictionary_data
 
