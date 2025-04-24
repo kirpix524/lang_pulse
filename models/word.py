@@ -30,9 +30,10 @@ class BasicWord(IBasicWord):
         return f"{self.term}|{self.translation}"
 
 class EnglishWord(BasicWord):
+    _translation: str | None
     def __init__(self, word, translation, transcription=None):
         super().__init__(word, translation)
-        self.transcription = transcription
+        self._transcription = transcription
 
     @classmethod
     def from_line(cls, line: str) -> "EnglishWord":
@@ -41,4 +42,7 @@ class EnglishWord(BasicWord):
         return cls(word, translation, transcription)
 
     def to_line(self) -> str:
-        return f"{self.term}|{self.translation}|{self.transcription}"
+        return f"{self.term}|{self.translation}|{self.get_transcription()}"
+
+    def get_transcription(self) -> str:
+        return self._transcription if self._transcription else ''

@@ -1,5 +1,5 @@
 from models.language import Language
-from models.user_word import IBasicUserWord
+from models.word import IBasicWord
 
 
 class UserWordFactory:
@@ -10,14 +10,14 @@ class UserWordFactory:
         cls.registry[lang_code.lower()] = word_class
 
     @classmethod
-    def create_word(cls, language: Language, *args, **kwargs) -> IBasicUserWord:
+    def create_word(cls, language: Language, *args, **kwargs) -> IBasicWord:
         word_class = cls.registry.get(language.lang_code.lower())
         if not word_class:
             raise ValueError(f"No Word class registered for language: {language}")
         return word_class(*args, **kwargs)
 
     @classmethod
-    def from_line(cls, language: Language, line: str) -> IBasicUserWord:
+    def from_line(cls, language: Language, line: str) -> IBasicWord:
         word_class = cls.registry.get(language.lang_code)
         if not word_class:
             raise ValueError(f"No word class registered for language: {language.lang_code}")

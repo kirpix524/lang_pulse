@@ -2,7 +2,7 @@ from abc import abstractmethod
 from datetime import datetime
 
 from models.stats import StatsRow
-from models.word import IBasicWord
+from models.word import IBasicWord, EnglishWord
 
 
 class IBasicUserWord:
@@ -38,7 +38,6 @@ class IBasicUserWord:
     @abstractmethod
     def get_stats(self) -> list[StatsRow]:
         pass
-
 
 class BasicUserWord(IBasicUserWord):
     def __init__(self, word: IBasicWord, added_at: datetime=None):
@@ -78,3 +77,8 @@ class BasicUserWord(IBasicUserWord):
 
     def get_stats(self) -> list[StatsRow]:
         return self.__stats
+
+class EnglishUserWord(BasicUserWord):
+    word: EnglishWord
+    def __init__(self, word: EnglishWord, added_at: datetime=None):
+        super().__init__(word, added_at)

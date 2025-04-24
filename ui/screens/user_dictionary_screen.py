@@ -1,5 +1,7 @@
+from factories.dictionary_screen_renderer_factory import DictionaryWordRowRendererFactory
 from ui.gui import add_col_label
 from ui.popups.input_words_popup import InputEnglishWordPopup
+from ui.renderers.user_dictionary_renderers import IDictionaryWordRowRenderer
 from ui.screens.base_screen import BaseScreen
 
 
@@ -7,6 +9,7 @@ class UserDictionaryScreen(BaseScreen):
     """Экран словаря"""
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.renderer: IDictionaryWordRowRenderer | None = None
 
     def add_word(self):
         """Обрабатывает нажатие кнопки "Добавить слово" """
@@ -19,6 +22,8 @@ class UserDictionaryScreen(BaseScreen):
 
     def on_pre_enter(self):
         super().on_pre_enter()
+        lang_code = self.state.get_language().lang_code
+        self.renderer = DictionaryWordRowRendererFactory.create(lang_code)
         self.show_words()
 
     def show_words(self):
@@ -31,14 +36,9 @@ class UserDictionaryScreen(BaseScreen):
 
         words = self.state.get_dictionary().get_words()
 
-        # Заголовки таблицы
-        headers = ["Слово", "Транскрипция", "Перевод", "Добавлено", "Последнее повторение"]
-        for title in headers:
-            add_col_label(container, title)
+        # ✅ Установим нужное количество колонок
+        container.cols = self.renderer.get_column_count()
 
+        self.renderer.render_headers(container)
         for word in words:
-            add_col_label(container, word.word.term)
-            add_col_label(container, f"[{word.word.get_transcription()}]")
-            add_col_label(container, word.word.translation)
-            add_col_label(container, word.get_added_at_str())
-            add_col_label(container, word.get_last_repeated_at_str())
+            self.renderer.render_word_row(container, word)
