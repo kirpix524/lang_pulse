@@ -1,6 +1,5 @@
 from factories.dictionary_screen_renderer_factory import DictionaryWordRowRendererFactory
-from ui.gui import add_col_label
-from ui.popups.input_words_popup import InputEnglishWordPopup
+from factories.input_word_popup_factory import InputWordPopupFactory
 from ui.renderers.user_dictionary_renderers import IDictionaryWordRowRenderer
 from ui.screens.base_screen import BaseScreen
 
@@ -13,11 +12,12 @@ class UserDictionaryScreen(BaseScreen):
 
     def add_word(self):
         """Обрабатывает нажатие кнопки "Добавить слово" """
+        lang_code = self.state.get_language().lang_code
         def save_word(term, translation, transcription):
             self.state.get_dictionary().add_word(term, translation, transcription=transcription)
             self.ctx.user_dictionary_storage.save_dictionary(self.state.get_dictionary())
             self.show_words()
-        popup = InputEnglishWordPopup(on_input_finished=save_word)
+        popup = InputWordPopupFactory.create(lang_code, on_input_finished=save_word)
         popup.open()
 
     def on_pre_enter(self):

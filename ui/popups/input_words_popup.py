@@ -1,7 +1,7 @@
 from kivy.uix.popup import Popup
 
 
-class InputWordPopup(Popup):
+class InputBasicWordPopup(Popup):
     def __init__(self, on_input_finished=None, **kwargs):
         super().__init__(**kwargs)
         self.on_input_finished = on_input_finished
@@ -15,7 +15,7 @@ class InputWordPopup(Popup):
                 self.on_input_finished(term, translation)
         self.dismiss()
 
-class InputEnglishWordPopup(InputWordPopup):
+class InputEnglishWordPopup(InputBasicWordPopup):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
