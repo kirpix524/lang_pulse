@@ -63,17 +63,17 @@ class TrainingScreen(BaseScreen):
 
         self.translation_visible = False
 
-        if training.get_direction() == TrainingDirection.TO_RU or training.get_direction() == TrainingDirection.RAPID:
+        if training.direction == TrainingDirection.TO_RU or training.direction == TrainingDirection.RAPID:
             self.training_text = word.word.term
         else:
             self.training_text = word.word.translation
 
-        if training.get_direction() == TrainingDirection.RAPID:
-            self._tick = Clock.schedule_once(self.next_word, training.get_interval())
-            self.start_pb_timer(training.get_interval())
+        if training.direction == TrainingDirection.RAPID:
+            self._tick = Clock.schedule_once(self.next_word, training.interval)
+            self.start_pb_timer(training.interval)
         else:
-            self._tick = Clock.schedule_once(self.show_translation, training.get_interval())
-            self.start_pb_timer(training.get_interval())
+            self._tick = Clock.schedule_once(self.show_translation, training.interval)
+            self.start_pb_timer(training.interval)
 
     def show_translation(self, *_):
         training = self.state.get_session().get_current_training()
@@ -82,7 +82,7 @@ class TrainingScreen(BaseScreen):
         if not current_word or self.translation_visible:
             return
 
-        if training.get_direction() == TrainingDirection.TO_RU:
+        if training.direction == TrainingDirection.TO_RU:
             self.training_text += f"\n[перевод: {current_word.word.translation}]"
         else:
             self.training_text += f"\n[перевод: {current_word.word.term}]"
@@ -108,7 +108,7 @@ class TrainingScreen(BaseScreen):
             if self.translation_visible:  #Если показан перевод, значит ранее пользователь нажал пробел, при следующем нажатии идем к следующему слову
                 self.next_step()
                 return
-            if training.get_direction() == TrainingDirection.RAPID:
+            if training.direction == TrainingDirection.RAPID:
                 training.pop_word()
                 self.next_step()
                 return
@@ -117,7 +117,7 @@ class TrainingScreen(BaseScreen):
         elif key == 32:  # Space
             Clock.unschedule(self._tick)
             self.stop_pb_timer()
-            if training.get_direction() == TrainingDirection.RAPID:
+            if training.direction == TrainingDirection.RAPID:
                 training.pop_word()
                 self.next_step()
                 return

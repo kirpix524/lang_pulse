@@ -78,5 +78,5 @@ class SessionFileStorage(ISessionStorage):
                 for training in session.get_trainings():
                     file.write(
                         f"T|{session.get_id()}|{training.get_id()}|{training.get_direction_value()}|"
-                        f"{training.get_interval()}|{training.get_training_date_time()}\n"
+                        f"{training.interval}|{training.get_training_date_time()}\n"
                     )

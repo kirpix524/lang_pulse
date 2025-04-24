@@ -52,8 +52,8 @@ class Training:
                  session_id: int,
                  strategy: WordHandlingStrategy = DefaultWordHandlingStrategy(),
                  need_shuffle: bool = True):
-        self.__direction: TrainingDirection = direction
-        self.__interval: float = interval
+        self.interval: float = interval
+        self.direction: TrainingDirection = direction
         self.__training_date_time: datetime = datetime.now()
         self.__training_id: int = training_id
         self.__session_id: int = session_id
@@ -66,20 +66,8 @@ class Training:
         self.__strategy: WordHandlingStrategy = strategy
 
 
-    def get_direction(self) -> TrainingDirection:
-        return self.__direction
-
     def get_direction_value(self) -> str:
-        return self.__direction.value if self.__direction else ''
-
-    def set_direction(self, direction: TrainingDirection) -> None:
-        self.__direction = direction
-
-    def get_interval(self) -> float:
-        return self.__interval
-
-    def set_interval(self, interval) -> None:
-        self.__interval = interval
+        return self.direction.value if self.direction else ''
 
     def get_training_date_time(self) -> datetime:
         return self.__training_date_time
@@ -136,7 +124,7 @@ class Training:
             success=success,
             recall_time=round(elapsed, 2) if elapsed is not None else None,
             timestamp=datetime.now(),
-            direction=self.__direction
+            direction=self.direction
         )
 
         self.__stats.append(stat)
