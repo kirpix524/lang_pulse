@@ -1,0 +1,43 @@
+<ChooseFromRepoPopup>:
+    title: "Выберите слово из словаря"
+    size_hint: None, None
+    size: 600, 500
+    auto_dismiss: False
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        TextInput:
+            id: filter_input
+            hint_text: "Введите слово или перевод"
+            on_text: root.apply_filter()
+            multiline: False
+            size_hint_y: None
+            height: 40
+
+        ScrollView:
+            GridLayout:
+                id: word_container
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 5
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            spacing: 10
+
+            Button:
+                text: "Добавить новое"
+                on_press: root.add_new_word()
+
+            Button:
+                text: "Выбрать"
+                on_press: root.confirm_selection()
+
+            Button:
+                text: "Отмена"
+                on_press: root.dismiss()

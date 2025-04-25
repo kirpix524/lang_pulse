@@ -1,5 +1,6 @@
 from factories.user_dictionary_screen_renderer_factory import UserDictionaryWordRowRendererFactory
 from factories.input_word_popup_factory import InputWordPopupFactory
+from ui.popups.choose_from_repo_popup import ChooseFromRepoPopup
 from ui.renderers.user_dictionary_renderers import IUserDictionaryWordRowRenderer
 from ui.screens.base_screen import BaseScreen
 
@@ -12,12 +13,28 @@ class UserDictionaryScreen(BaseScreen):
 
     def add_word(self):
         """Обрабатывает нажатие кнопки "Добавить слово" """
-        lang_code = self.state.get_language().lang_code
-        def save_word(term, translation, transcription):
-            self.state.get_dictionary().add_word(term, translation, transcription=transcription)
+        all_words = self.ctx.get_word_repo().get_words()
+        user_words = self.state.get_dictionary().get_words()
+        user_words_pairs = [(w.word.term, w.word.translation) for w in user_words]
+        available_words = [w for w in all_words if (w.term, w.translation) not in user_words_pairs]
+
+        def on_selected(words):
+            for word in words:
+                self.state.get_dictionary().add_word(word)
             self.ctx.user_dictionary_storage.save_dictionary(self.state.get_dictionary())
             self.show_words()
-        popup = InputWordPopupFactory.create(lang_code, on_input_finished=save_word)
+
+        def on_add_new(term):
+            # показать попап для ввода перевода, затем сохранить в общий словарь и пользовательский
+            pass
+
+        popup = ChooseFromRepoPopup(
+            available_words,
+            self.state.get_language(),
+            self.ctx.get_word_repo(),
+            on_words_selected=on_selected,
+            on_add_new=on_add_new
+        )
         popup.open()
 
     def on_pre_enter(self):

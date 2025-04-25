@@ -3,6 +3,7 @@ from models.user import User
 from models.stats import StatsRow
 from datetime import datetime
 from models.user_word import IBasicUserWord, BasicUserWord
+from models.word import IBasicWord
 from repositories.word_repo import WordRepository
 
 
@@ -31,14 +32,19 @@ class UserDictionary:
                 return w
         return None
 
-    def add_word(self, term, translation, *args, **kwargs) -> None:
+    def find_word_by_object(self, word: IBasicWord) -> IBasicUserWord | None:
+        for w in self.__words:
+            if w.word == word:
+                return w
+        return None
+
+    def add_word(self, word: IBasicWord, added_at: datetime=None, *args, **kwargs) -> None:
         # Проверяем, есть ли уже такое сочетание слово + перевод
-        if self.find_word(term, translation):
+        if self.find_word_by_object(word):
             return # Не добавляем дубликат
-        word = self.__word_repo.find_word(term,translation)
-        if not word:
-            return
-        user_word = BasicUserWord(word, datetime.now())
+        if not added_at:
+            added_at = datetime.now()
+        user_word = BasicUserWord(word, added_at)
         self.__words.append(user_word)
 
     def update_training_stats(self, stats: list[StatsRow]) -> None:
