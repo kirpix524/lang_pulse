@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
+from factories.user_word_factory import UserWordFactory
 from models.user_dictionary import UserDictionary
 from models.user_word import IBasicUserWord, BasicUserWord
 from models.language import Language
@@ -34,7 +35,8 @@ class UserDictionaryFileStorage(IUserDictionaryStorage):
                         added_at = datetime.now()
                     word = word_repo.find_word(term, translation)
 
-                    words.append(BasicUserWord(word, added_at))
+                    user_word = UserWordFactory.create_word(language, word, added_at)
+                    words.append(user_word)
         except FileNotFoundError:
             print(f"Файл {dictionary_file_name} не найден. Будет создан при сохранении.")
         dictionary.set_words(words)

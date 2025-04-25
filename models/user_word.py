@@ -41,7 +41,7 @@ class IBasicUserWord:
 
 class BasicUserWord(IBasicUserWord):
     def __init__(self, word: IBasicWord, added_at: datetime=None):
-        self.word = word
+        self.word: IBasicWord = word
         self.__added_at = added_at
         self.__start_time = None
         self.__stats: list[StatsRow] = []
@@ -79,6 +79,6 @@ class BasicUserWord(IBasicUserWord):
         return self.__stats
 
 class EnglishUserWord(BasicUserWord):
-    word: EnglishWord
-    def __init__(self, word: EnglishWord, added_at: datetime=None):
+    def __init__(self, word: EnglishWord, added_at: datetime = None):
         super().__init__(word, added_at)
+        self.word: EnglishWord = word  # просто аннотация типа

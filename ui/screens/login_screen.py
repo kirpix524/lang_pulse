@@ -22,6 +22,7 @@ class LoginScreen(BaseScreen):
             if self.ctx.get_lang_repo().get_language_by_name(lang_name):
                 self.state.set_user(self.ctx.get_user_repo().get_user_by_name(username))
                 self.state.set_language(self.ctx.get_lang_repo().get_language_by_name(lang_name))
+                self.ctx.get_word_repo().set_language(self.state.get_language())
 
                 self.state.set_dictionary(self.ctx.user_dictionary_storage.load_dictionary(self.state.get_user(), self.state.get_language(), self.ctx.get_word_repo()))
                 self.ctx.stats_storage.load_training_stats_words(self.state.get_user(), self.state.get_language(), self.state.get_dictionary())

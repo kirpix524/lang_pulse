@@ -50,7 +50,7 @@ class StatsFileStorage(IStatsStorage):
 
         file_path = self.__get_stats_file_name(user, language)
         words = dictionary.get_words()
-        word_keys = {(w.word, w.translation) for w in words}
+        word_keys = {(w.word.term, w.word.translation) for w in words}
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:

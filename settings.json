@@ -4,7 +4,7 @@
   "words_db_file" : "data/words.txt",
   "dictionaries_directory" : "data/user_dictionaries/",
   "dictionaries_file_name_prefix" : "user_dictionary",
-  "words_directory": "data/dictionary/",
+  "words_directory": "data/dictionaries/",
   "words_file_name_prefix" : "dictionary",
   "logs_directory" : "data/logs/",
   "layouts_directory" : "ui/layouts/",

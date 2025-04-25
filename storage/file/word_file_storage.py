@@ -29,7 +29,7 @@ class WordFileStorage(IWordStorage):
             print(f"Файл {word_repo_file_name} не найден. Будет создан при сохранении.")
         return words
 
-    def save_word_list(self, language: Language, words: list[IBasicWord]) -> None:
+    def save_word_list(self, words: list[IBasicWord], language: Language) -> None:
         file_path = self.__get_word_repo_file_name(language)
         try:
             with open(file_path, "w", encoding="utf-8") as f:
@@ -38,7 +38,7 @@ class WordFileStorage(IWordStorage):
         except Exception as e:
             print(f"Ошибка при сохранении слов в {file_path}: {e}")
 
-    def save_word(self, language: Language, word: IBasicWord) -> None:
+    def save_word(self, word: IBasicWord, language: Language) -> None:
         file_path = self.__get_word_repo_file_name(language)
         try:
             with open(file_path, "a", encoding="utf-8") as f:
