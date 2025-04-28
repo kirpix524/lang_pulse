@@ -55,5 +55,15 @@ class UserDictionary:
             word.add_stat(stat)
 
     def get_words_not_in_list(self, words: list[IBasicUserWord]) -> list[IBasicUserWord]:
+        if not words:
+            return self.__words.copy()
+
         word_keys = {(w.word.term, w.word.translation) for w in words}
-        return [w for w in self.__words if (w.word.term, w.word.translation) not in word_keys]
+
+        result = []
+        for w in self.__words:
+            key = (w.word.term, w.word.translation)
+            if key not in word_keys:
+                result.append(w)
+
+        return result
