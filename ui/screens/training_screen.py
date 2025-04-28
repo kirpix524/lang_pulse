@@ -5,6 +5,7 @@ from kivy.core.window import Window
 from kivy.properties import StringProperty
 
 from app.config import TrainingDirection
+from ui.common_widgets.timer_bar import TimerBar
 from ui.popups.session_stats_popup import SessionStatsPopup
 from ui.screens.base_screen import BaseScreen
 

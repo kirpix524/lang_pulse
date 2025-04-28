@@ -1,6 +1,5 @@
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.popup import Popup
-from kivy.properties import StringProperty
 
 from factories.input_word_popup_factory import InputWordPopupFactory
 from models.language import Language
@@ -29,13 +28,10 @@ class ChooseFromRepoPopup(Popup):
         self.update_word_list()
 
     def apply_filter(self):
-        #query = self.filter_text.lower().strip()
         query = self.ids.filter_input.text.lower().strip()
-        print(f"Filter query: {query}")
         self.filtered_words = [
             w for w in self.all_words if query in w.term.lower() or query in w.translation.lower()
         ]
-        print(f"Filtered words: {self.filtered_words}")
         self.update_word_list()
 
     def update_word_list(self):
@@ -49,12 +45,12 @@ class ChooseFromRepoPopup(Popup):
         from kivy.uix.label import Label
 
         row = BoxLayout(orientation="horizontal", size_hint_y=None, height=30, spacing=10)
-        checkbox = CheckBox()
+        checkbox = CheckBox(size_hint=(None, None), size=(30, 30))
         self.checkboxes.append((checkbox, word))  # сохраняем связь
 
         row.add_widget(checkbox)
-        row.add_widget(Label(text=word.term, size_hint_x=0.3))
-        row.add_widget(Label(text=word.translation, size_hint_x=0.4))
+        row.add_widget(Label(text=word.term, size_hint_x=0.5))
+        row.add_widget(Label(text=word.translation, size_hint_x=0.5))
         return row
 
     def confirm_selection(self):

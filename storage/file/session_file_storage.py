@@ -73,10 +73,10 @@ class SessionFileStorage(ISessionStorage):
                 )
                 for word in session.get_words():
                     file.write(
-                        f"W|{session.get_id()}|{word.word}|{word.translation}\n"
+                        f"W|{session.get_id()}|{word.word.term}|{word.word.translation}\n"
                     )
                 for training in session.get_trainings():
                     file.write(
                         f"T|{session.get_id()}|{training.get_id()}|{training.get_direction_value()}|"
-                        f"{training.interval}|{training.get_training_date_time()}\n"
+                        f"{training.interval}|{training.training_date_time}\n"
                     )

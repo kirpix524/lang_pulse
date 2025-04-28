@@ -32,7 +32,7 @@ class UserDictionary:
                 return w
         return None
 
-    def find_word_by_object(self, word: IBasicWord) -> IBasicUserWord | None:
+    def _find_word_by_object(self, word: IBasicWord) -> IBasicUserWord | None:
         for w in self.__words:
             if w.word == word:
                 return w
@@ -40,7 +40,7 @@ class UserDictionary:
 
     def add_word(self, word: IBasicWord, added_at: datetime=None, *args, **kwargs) -> None:
         # Проверяем, есть ли уже такое сочетание слово + перевод
-        if self.find_word_by_object(word):
+        if self._find_word_by_object(word):
             return # Не добавляем дубликат
         if not added_at:
             added_at = datetime.now()
@@ -49,10 +49,11 @@ class UserDictionary:
 
     def update_training_stats(self, stats: list[StatsRow]) -> None:
         for stat in stats:
-            word = self.find_word(str(stat.word), str(stat.translation))
+            word = self.find_word(str(stat.term), str(stat.translation))
             if not word:
                 continue
             word.add_stat(stat)
 
     def get_words_not_in_list(self, words: list[IBasicUserWord]) -> list[IBasicUserWord]:
-        return [w for w in self.__words if w.word not in words]
+        word_keys = {(w.word.term, w.word.translation) for w in words}
+        return [w for w in self.__words if (w.word.term, w.word.translation) not in word_keys]

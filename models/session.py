@@ -69,11 +69,13 @@ class Training:
     def get_direction_value(self) -> str:
         return self.direction.value if self.direction else ''
 
-    def get_training_date_time(self) -> datetime:
+    @property
+    def training_date_time(self) -> datetime:
         return self.__training_date_time
 
-    def set_training_date_time(self, training_date_time: datetime) -> None:
-        self.__training_date_time = training_date_time
+    @training_date_time.setter
+    def training_date_time(self, value: datetime):
+        self.__training_date_time = value
 
     def get_id(self) -> int:
         return self.__training_id
@@ -117,7 +119,7 @@ class Training:
         elapsed = time.time() - word.get_start_time() if success else None
 
         stat = StatsRow(
-            word=word.word.term,
+            term=word.word.term,
             translation=word.word.translation,
             session_id=self.__session_id,
             training_id=self.__training_id,
@@ -146,7 +148,7 @@ class Session:
         training = Training(direction, interval, self.__words.copy(), new_training_id, self.__session_id)
         self.__current_training = training
         self.__trainings.append(training)
-        self.__last_repeated_at = training.get_training_date_time()
+        self.__last_repeated_at = training.training_date_time
 
     def add_existing_training(self,
                               direction: TrainingDirection,
@@ -154,7 +156,7 @@ class Session:
                               training_id: int = None,
                               training_date_time: datetime = None) -> None:
         training = Training(direction, interval, [], training_id, self.__session_id)
-        training.set_training_date_time(training_date_time)
+        training.training_date_time=training_date_time
         self.__trainings.append(training)
 
     def get_current_training(self) -> Training:
@@ -210,8 +212,8 @@ class Session:
     def get_last_repeated_at(self) -> datetime | None:
         if not self.__trainings:
             return None
-        latest = max(self.__trainings, key=lambda t: t.get_training_date_time())
-        return latest.get_training_date_time()
+        latest = max(self.__trainings, key=lambda t: t.training_date_time)
+        return latest.training_date_time
 
     def can_be_changed(self) -> bool:
         return not self.__trainings

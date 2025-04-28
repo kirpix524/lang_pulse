@@ -1,10 +1,14 @@
+from typing import Callable
+
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 
+from models.user_word import IBasicUserWord
+
 
 class ChooseWordsPopup(Popup):
-    def __init__(self, words, on_words_selected, **kwargs):
+    def __init__(self, words: list[IBasicUserWord], on_words_selected: Callable, **kwargs):
         super().__init__(**kwargs)
         self.words = words
         self.on_words_selected = on_words_selected
@@ -17,7 +21,7 @@ class ChooseWordsPopup(Popup):
 
         # Заголовки
         grid.add_widget(Label(text='', bold=True))
-        for header in ["Слово", "Транскрипция", "Перевод", "Добавлено", "Последнее повторение"]:
+        for header in ["Слово", "Перевод", "Добавлено", "Последнее повторение"]:
             grid.add_widget(Label(text=header, bold=True))
 
         for word in self.words:
@@ -25,9 +29,8 @@ class ChooseWordsPopup(Popup):
             self.checkboxes[word] = cb
             grid.add_widget(cb)
 
-            grid.add_widget(Label(text=word.term, size_hint_x=None, width=150))
-            grid.add_widget(Label(text=word.get_transcription(), size_hint_x=None, width=150))
-            grid.add_widget(Label(text=word.translation, size_hint_x=None, width=150))
+            grid.add_widget(Label(text=word.word.term, size_hint_x=None, width=150))
+            grid.add_widget(Label(text=word.word.translation, size_hint_x=None, width=150))
             grid.add_widget(Label(text=word.get_added_at_str(), size_hint_x=None, width=100))
             grid.add_widget(Label(text=word.get_last_repeated_at_str(), size_hint_x=None, width=100))
 

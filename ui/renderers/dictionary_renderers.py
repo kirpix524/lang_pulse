@@ -65,8 +65,7 @@ class EnglishDictionaryWordRowRenderer(BasicDictionaryWordRowRenderer):
                 color=(0, 0, 0, 1),
                 size_hint_y=None,
                 height=30,
-                size_hint_x=None,
-                width=150
+                size_hint_x=0.33
             ))
 
     def render_word_row(self, container, word: EnglishWord):
@@ -76,17 +75,15 @@ class EnglishDictionaryWordRowRenderer(BasicDictionaryWordRowRenderer):
             color=(0, 0, 0, 1),
             size_hint_y=None,
             height=30,
-            size_hint_x=None,
-            width=150
+            size_hint_x=0.33
         ))
         container.add_widget(Label(
-            text=f"[{word.get_transcription()}]",
+            text=f"[{word.transcription}]",
             bold=True,
             color=(0, 0, 0, 1),
             size_hint_y=None,
             height=30,
-            size_hint_x=None,
-            width=150
+            size_hint_x=0.33
         ))
         container.add_widget(Label(
             text=word.translation,
@@ -94,8 +91,7 @@ class EnglishDictionaryWordRowRenderer(BasicDictionaryWordRowRenderer):
             color=(0, 0, 0, 1),
             size_hint_y=None,
             height=30,
-            size_hint_x=None,
-            width=150
+            size_hint_x=0.33
         ))
 
     def get_column_count(self) -> int:

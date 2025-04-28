@@ -4,7 +4,7 @@ from app.config import TrainingDirection, get_direction_name
 class StatsRow:
     def __init__(
         self,
-        word: str,
+        term: str,
         translation: str,
         session_id: int,
         training_id: int,
@@ -13,7 +13,7 @@ class StatsRow:
         timestamp: datetime,
         direction: TrainingDirection
     ):
-        self.word = word
+        self.term = term
         self.translation = translation
         self.session_id = session_id
         self.training_id = training_id

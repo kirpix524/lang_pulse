@@ -32,7 +32,7 @@ class StatsFileStorage(IStatsStorage):
                 line = "T|" + "|".join([
                     str(stat.session_id),
                     str(stat.training_id),
-                    str(stat.word),
+                    str(stat.term),
                     str(stat.translation),
                     "1" if stat.success else "0",
                     f"{stat.recall_time:.2f}" if stat.recall_time is not None else "",
@@ -71,7 +71,7 @@ class StatsFileStorage(IStatsStorage):
                         continue
 
                     stat = StatsRow(
-                        word=word,
+                        term=word,
                         translation=translation,
                         session_id=int(session_id),
                         training_id=int(training_id),

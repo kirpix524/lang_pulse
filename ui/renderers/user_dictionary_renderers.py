@@ -85,8 +85,7 @@ class EnglishUserDictionaryWordRowRenderer(BasicUserDictionaryWordRowRenderer):
                 color=(0, 0, 0, 1),
                 size_hint_y=None,
                 height=30,
-                size_hint_x=None,
-                width=150
+                size_hint_x=0.2
             ))
 
     def render_word_row(self, container, user_word: EnglishUserWord):
@@ -98,17 +97,15 @@ class EnglishUserDictionaryWordRowRenderer(BasicUserDictionaryWordRowRenderer):
             color=(0, 0, 0, 1),
             size_hint_y=None,
             height=30,
-            size_hint_x=None,
-            width=150
+            size_hint_x=0.2
         ))
         container.add_widget(Label(
-            text=f"[{word.get_transcription()}]",
+            text=f"[{word.transcription}]",
             bold=True,
             color=(0, 0, 0, 1),
             size_hint_y=None,
             height=30,
-            size_hint_x=None,
-            width=150
+            size_hint_x=0.2
         ))
         container.add_widget(Label(
             text=word.translation,
@@ -116,8 +113,7 @@ class EnglishUserDictionaryWordRowRenderer(BasicUserDictionaryWordRowRenderer):
             color=(0, 0, 0, 1),
             size_hint_y=None,
             height=30,
-            size_hint_x=None,
-            width=150
+            size_hint_x=0.2
         ))
         container.add_widget(Label(
             text=user_word.get_added_at_str(),
@@ -125,8 +121,7 @@ class EnglishUserDictionaryWordRowRenderer(BasicUserDictionaryWordRowRenderer):
             color=(0, 0, 0, 1),
             size_hint_y=None,
             height=30,
-            size_hint_x=None,
-            width=150
+            size_hint_x=0.2
         ))
         container.add_widget(Label(
             text=user_word.get_last_repeated_at_str(),
@@ -134,8 +129,7 @@ class EnglishUserDictionaryWordRowRenderer(BasicUserDictionaryWordRowRenderer):
             color=(0, 0, 0, 1),
             size_hint_y=None,
             height=30,
-            size_hint_x=None,
-            width=150
+            size_hint_x=0.2
         ))
 
     def get_column_count(self) -> int:

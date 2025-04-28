@@ -32,7 +32,7 @@ class SessionStatsPopup(Popup):
             else:
                 text_result = "Правильно" if row.success else "Неправильно"
 
-            grid.add_widget(Label(text=row.word, size_hint_x=None, size_hint_y=None, width=150, height=30))
+            grid.add_widget(Label(text=row.term, size_hint_x=None, size_hint_y=None, width=150, height=30))
             grid.add_widget(Label(text=row.translation, size_hint_x=None, size_hint_y=None, width=150, height=30))
             grid.add_widget(Label(text=text_result, size_hint_x=None, size_hint_y=None, width=150, height=30))
             grid.add_widget(Label(text=f"{row.recall_time} сек" if row.recall_time else "-", size_hint_x=None, size_hint_y=None, width=100, height=30))
