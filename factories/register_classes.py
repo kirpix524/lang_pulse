@@ -3,8 +3,10 @@ from factories.user_dictionary_screen_renderer_factory import UserDictionaryWord
 from factories.input_word_popup_factory import InputWordPopupFactory
 from factories.user_word_factory import UserWordFactory
 from factories.word_factory import WordFactory
+from factories.word_repo_table_schema_factory import WordRepoTableSchemaFactory
 from models.user_word import EnglishUserWord
 from models.word import EnglishWord
+from storage.sqlite.word_repo_schema import EnglishWordRepoTableSchema
 from ui.popups.input_words_popup import InputEnglishWordPopup
 from ui.renderers.dictionary_renderers import EnglishDictionaryWordRowRenderer
 from ui.renderers.user_dictionary_renderers import EnglishUserDictionaryWordRowRenderer
@@ -16,3 +18,4 @@ def register_classes():
     UserDictionaryWordRowRendererFactory.register("en", EnglishUserDictionaryWordRowRenderer)
     InputWordPopupFactory.register("en", InputEnglishWordPopup)
     DictionaryWordRowRendererFactory.register("en", EnglishDictionaryWordRowRenderer)
+    WordRepoTableSchemaFactory.register("en", EnglishWordRepoTableSchema)

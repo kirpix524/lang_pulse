@@ -7,6 +7,9 @@ from models.word import IBasicWord, EnglishWord
 
 class IBasicUserWord:
     word: IBasicWord
+    def __init__(self, *args, **kwargs):
+        pass
+
     @abstractmethod
     def get_start_time(self) -> float:
         pass
@@ -41,6 +44,7 @@ class IBasicUserWord:
 
 class BasicUserWord(IBasicUserWord):
     def __init__(self, word: IBasicWord, added_at: datetime=None):
+        super().__init__()
         self.word: IBasicWord = word
         self.__added_at = added_at
         self.__start_time = None

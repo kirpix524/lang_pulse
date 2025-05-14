@@ -4,6 +4,8 @@ from models.language import Language
 from models.word import IBasicWord
 
 class IWordRepoTableSchema(ABC):
+    def __init__(self, *args, **kwargs) -> None:
+        pass
     @abstractmethod
     def table_name(self) -> str: ...
     @abstractmethod
@@ -22,9 +24,10 @@ class IWordRepoTableSchema(ABC):
     def line_to_row(self, line: str) -> tuple: ...
 
 class BasicWordRepoTableSchema(IWordRepoTableSchema):
-    def __init__(self, table_prefix: str, language: Language) -> None:
-        self._table_prefix:str = table_prefix
-        self._language:Language = language
+    def __init__(self, language: Language, table_prefix: str) -> None:
+        super().__init__()
+        self._language: Language = language
+        self._table_prefix: str = table_prefix
 
     def table_name(self) -> str:
         return f"{self._table_prefix}_{self._language.lang_code}"

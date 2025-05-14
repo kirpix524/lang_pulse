@@ -4,6 +4,9 @@ class IBasicWord(ABC):
     _term: str
     _translation: str
 
+    def __init__(self, *args, **kwargs):
+        pass
+
     @classmethod
     @abstractmethod
     def from_line(cls, line: str) -> "IBasicWord":
@@ -36,6 +39,7 @@ class IBasicWord(ABC):
 
 class BasicWord(IBasicWord):
     def __init__(self, term, translation):
+        super().__init__()
         self._term = term
         self._translation = translation
 
