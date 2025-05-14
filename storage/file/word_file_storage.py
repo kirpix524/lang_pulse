@@ -2,8 +2,7 @@ from factories.word_factory import WordFactory
 from models.language import Language
 from pathlib import Path
 
-from models.user_word import IBasicUserWord
-from models.word import IBasicWord, EnglishWord
+from models.word import IBasicWord
 from storage.interfaces import IWordStorage
 
 

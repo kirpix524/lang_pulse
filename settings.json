@@ -12,6 +12,8 @@
   "sessions_file_name_prefix" : "sessions",
   "stats_directory" : "data/stats/",
   "stats_file_name_prefix" : "stats",
+  "sqlite_database" : "data/sqlite/database.db",
+  "words_sql_table_prefix" : "dictionary",
   "screen_settings" :
   {
     "width" : 1280,

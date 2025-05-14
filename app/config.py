@@ -20,6 +20,8 @@ STATS_DATA = {"DIRECTORY": config["stats_directory"],
 WORD_REPO_DATA = {"DIRECTORY": config["words_directory"],
                   "FILE_NAME_PREFIX": config["words_file_name_prefix"]}
 
+WORD_REPO_SQL_DATA = {"TABLE_PREFIX": config["words_sql_table_prefix"]}
+
 TRAINING_DIRECTIONS = config.get("training_directions", [])
 TrainingDirection = Enum("TrainingDirection", {name.upper(): name for name in TRAINING_DIRECTIONS})
 def get_direction_name(direction: TrainingDirection) -> str:
@@ -28,10 +30,11 @@ def get_direction_name(direction: TrainingDirection) -> str:
     else:
         return ""
 
-
 LOGS_DIRECTORY = config["logs_directory"]
 SCREEN_WIDTH = config["screen_settings"]["width"]
 SCREEN_HEIGHT = config["screen_settings"]["height"]
+
+
 
 
 LOGIN_SCREEN_CHOOSE_USER_TEXT = config["login_screen_settings"]["choose_user_spinner_text"]
