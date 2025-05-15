@@ -7,20 +7,20 @@ from models.language import Language
 from models.word import IBasicWord
 from factories.word_repo_table_schema_factory import WordRepoTableSchemaFactory
 from storage.interfaces import IWordStorage
-from app.config import WORD_REPO_SQL_DATA
 from storage.sqlite.schema.word_repo_schema import IWordRepoTableSchema
 
 
 class WordSQLiteStorage(IWordStorage):
-    def __init__(self, db_path: str) -> None:
-        self._conn: Connection = sqlite3.connect(db_path)
+    def __init__(self, sql_data: dict[str, str]) -> None:
+        self._conn: Connection = sqlite3.connect(sql_data["db_path"])
         self._schema_cache: Dict[str, IWordRepoTableSchema] = {}
+        self._sql_data = sql_data
 
     def _get_schema(self, language: Language) -> IWordRepoTableSchema:
         code = language.lang_code.lower()
         if code not in self._schema_cache:
             schema = WordRepoTableSchemaFactory.create_schema(
-                language, WORD_REPO_SQL_DATA["table_prefix"]
+                language, self._sql_data["word_repo_table_prefix"]
             )
             schema.create_table(self._conn)
             self._schema_cache[code] = schema

@@ -14,6 +14,8 @@
   "stats_file_name_prefix" : "stats",
   "sqlite_database" : "data/sqlite/database.db",
   "words_sql_table_prefix" : "dictionary",
+  "users_sql_table" : "users",
+  "languages_sql_table" : "languages",
   "screen_settings" :
   {
     "width" : 1280,

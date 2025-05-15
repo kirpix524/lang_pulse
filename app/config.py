@@ -1,8 +1,6 @@
 import json
 from enum import Enum
 
-
-
 CONFIG_PATH = "settings.json"
 with open(CONFIG_PATH, "r", encoding="utf-8") as config_file:
     config = json.load(config_file)
@@ -20,7 +18,12 @@ STATS_DATA = {"DIRECTORY": config["stats_directory"],
 WORD_REPO_DATA = {"DIRECTORY": config["words_directory"],
                   "FILE_NAME_PREFIX": config["words_file_name_prefix"]}
 
-WORD_REPO_SQL_DATA = {"table_prefix": config["words_sql_table_prefix"]}
+SQL_DATA = {
+    "db_path": config["sqlite_database"],
+    "word_repo_table_prefix": config["words_sql_table_prefix"],
+    "users_table_name": config["users_sql_table"],
+    "languages_table_name": config["languages_sql_table"]
+}
 
 TRAINING_DIRECTIONS = config.get("training_directions", [])
 TrainingDirection = Enum("TrainingDirection", {name.upper(): name for name in TRAINING_DIRECTIONS})
