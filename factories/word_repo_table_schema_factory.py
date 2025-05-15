@@ -1,7 +1,7 @@
 from typing import Type
 
 from models.language import Language
-from storage.sqlite.word_repo_schema import IWordRepoTableSchema
+from storage.sqlite.schema.word_repo_schema import IWordRepoTableSchema
 
 class WordRepoTableSchemaFactory:
     _registry: dict[str, Type[IWordRepoTableSchema]] = {}

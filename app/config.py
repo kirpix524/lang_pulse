@@ -20,7 +20,7 @@ STATS_DATA = {"DIRECTORY": config["stats_directory"],
 WORD_REPO_DATA = {"DIRECTORY": config["words_directory"],
                   "FILE_NAME_PREFIX": config["words_file_name_prefix"]}
 
-WORD_REPO_SQL_DATA = {"TABLE_PREFIX": config["words_sql_table_prefix"]}
+WORD_REPO_SQL_DATA = {"table_prefix": config["words_sql_table_prefix"]}
 
 TRAINING_DIRECTIONS = config.get("training_directions", [])
 TrainingDirection = Enum("TrainingDirection", {name.upper(): name for name in TRAINING_DIRECTIONS})

@@ -6,7 +6,7 @@ from factories.word_factory import WordFactory
 from factories.word_repo_table_schema_factory import WordRepoTableSchemaFactory
 from models.user_word import EnglishUserWord
 from models.word import EnglishWord
-from storage.sqlite.word_repo_schema import EnglishWordRepoTableSchema
+from storage.sqlite.schema.word_repo_schema import EnglishWordRepoTableSchema
 from ui.popups.input_words_popup import InputEnglishWordPopup
 from ui.renderers.dictionary_renderers import EnglishDictionaryWordRowRenderer
 from ui.renderers.user_dictionary_renderers import EnglishUserDictionaryWordRowRenderer
