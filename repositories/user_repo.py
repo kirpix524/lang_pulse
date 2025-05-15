@@ -12,7 +12,7 @@ class UserRepository:
     def add_user(self, username):
         user = User(username, self.__get_new_user_id())
         self._users.append(user)
-        self._storage.save_user_list(self._users)
+        self._storage.save_user(user)
 
     def get_usernames(self) -> list[str]:
         return [user.username for user in self._users]

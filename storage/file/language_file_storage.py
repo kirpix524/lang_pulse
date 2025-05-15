@@ -26,3 +26,15 @@ class LanguageFileStorage(ILanguageStorage):
         with open(self.__file_names["LANGUAGES"], "w", encoding="utf-8") as file:
             for language in language_list:
                 file.write(f"{language.lang_id}|{language.lang_name}|{language.lang_code}\n")
+
+    def save_language(self, language: Language) -> None:
+        languages = self.load_language_list()
+        fl_found = False
+        for l in languages:
+            if l.lang_id == language.lang_id:
+                fl_found = True
+                break
+        if not fl_found:
+            languages.append(language)
+        self.save_language_list(languages)
+

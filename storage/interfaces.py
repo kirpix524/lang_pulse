@@ -20,6 +20,10 @@ class IUserStorage(ABC):
     def save_user_list(self, user_list: list[User]) -> None:
         pass
 
+    @abstractmethod
+    def save_user(self, user: User) -> None:
+        pass
+
 
 class ILanguageStorage(ABC):
     @abstractmethod
@@ -28,6 +32,10 @@ class ILanguageStorage(ABC):
 
     @abstractmethod
     def save_language_list(self, language_list: list[Language]) -> None:
+        pass
+
+    @abstractmethod
+    def save_language(self, language: Language) -> None:
         pass
 
 

@@ -31,12 +31,27 @@ class UserSQLiteStorage(IUserStorage):
 
     def save_user_list(self, user_list: List[User]) -> None:
         cursor = self.__connection.cursor()
-        cursor.execute(f"DELETE FROM {self._sql_data["users_table_name"]}")
         for user in user_list:
             cursor.execute(
-                f"INSERT INTO {self._sql_data["users_table_name"]} (id, username) VALUES (?, ?)",
+                f"""
+                    INSERT INTO {self._sql_data["users_table_name"]} (id, username)
+                        VALUES (?, ?)
+                        ON CONFLICT(id) DO UPDATE SET username = excluded.username
+                    """,
                 (user.userid, user.username)
             )
+        self.__connection.commit()
+
+    def save_user(self, user: User) -> None:
+        cursor = self.__connection.cursor()
+        cursor.execute(
+            f"""
+                INSERT INTO {self._sql_data["users_table_name"]} (id, username)
+                    VALUES (?, ?)
+                    ON CONFLICT(id) DO UPDATE SET username = excluded.username
+                """,
+            (user.userid, user.username)
+        )
         self.__connection.commit()
 
     def __del__(self) -> None:

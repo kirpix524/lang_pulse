@@ -26,3 +26,16 @@ class UserFileStorage(IUserStorage):
         with open(self.__file_names["USERS"], "w", encoding="utf-8") as file:
             for user in user_list:
                 file.write(f"{user.userid}|{user.username}\n")
+
+    def save_user(self, user: User) -> None:
+        users = self.load_user_list()
+        fl_found = False
+        for u in users:
+            if u.userid == user.userid:
+                user.username = u.username
+                fl_found = True
+                break
+        if not fl_found:
+            users.append(user)
+        self.save_user_list(users)
+
