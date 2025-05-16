@@ -16,7 +16,7 @@ class SessionSQLiteStorage(ISessionStorage):
         self._sql_data = sql_data
 
     def __get_sessions_table_name(self, language: Language) -> str:
-        return f"{self._sql_data['session_table_prefix']}_{language.lang_code}".lower()
+        return f"{self._sql_data['sessions_table_prefix']}_{language.lang_code}".lower()
 
     def __get_words_table_name(self, language: Language) -> str:
         return f"{self._sql_data['session_words_table_prefix']}_{language.lang_code}".lower()

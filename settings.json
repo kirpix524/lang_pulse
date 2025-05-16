@@ -12,7 +12,7 @@
   "sessions_file_name_prefix" : "sessions",
   "stats_directory" : "data/file_storage/stats/",
   "stats_file_name_prefix" : "stats",
-  "sqlite_database" : "data/sqlite/database.db",
+  "sqlite_database" : "data/sqlite/lang_pulse.db",
   "words_sql_table_prefix" : "dictionary",
   "users_sql_table" : "users",
   "languages_sql_table" : "languages",

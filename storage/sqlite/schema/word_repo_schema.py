@@ -65,6 +65,9 @@ class EnglishWordRepoTableSchema(BasicWordRepoTableSchema):
         """
         conn.execute(sql)
 
+    def select_all_words(self):
+        return f"SELECT term, translation, transcription FROM {self.table_name()}"
+
     def insert_word(self):
         return f"INSERT OR REPLACE INTO {self.table_name()} (term, translation, transcription) VALUES (?, ?, ?)"
 
