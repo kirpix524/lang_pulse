@@ -27,6 +27,7 @@ SQL_DATA = {
     "sessions_table_prefix": config["sessions_sql_table_prefix"],
     "trainings_table_prefix": config["trainings_sql_table_prefix"],
     "session_words_table_prefix": config["session_words_sql_table_prefix"],
+    "stats_table_prefix": config["stats_sql_table_prefix"]
 }
 
 TRAINING_DIRECTIONS = config.get("training_directions", [])
