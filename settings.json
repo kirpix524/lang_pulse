@@ -17,6 +17,9 @@
   "users_sql_table" : "users",
   "languages_sql_table" : "languages",
   "user_dictionary_sql_table_prefix" : "user_dictionary",
+  "sessions_sql_table_prefix" : "sessions",
+  "trainings_sql_table_prefix" : "trainings",
+  "session_words_sql_table_prefix" : "session_words",
   "screen_settings" :
   {
     "width" : 1280,
