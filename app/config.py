@@ -22,7 +22,8 @@ SQL_DATA = {
     "db_path": config["sqlite_database"],
     "word_repo_table_prefix": config["words_sql_table_prefix"],
     "users_table_name": config["users_sql_table"],
-    "languages_table_name": config["languages_sql_table"]
+    "languages_table_name": config["languages_sql_table"],
+    "user_dictionary_table_prefix": config["user_dictionary_sql_table_prefix"]
 }
 
 TRAINING_DIRECTIONS = config.get("training_directions", [])

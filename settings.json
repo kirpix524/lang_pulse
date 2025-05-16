@@ -16,6 +16,7 @@
   "words_sql_table_prefix" : "dictionary",
   "users_sql_table" : "users",
   "languages_sql_table" : "languages",
+  "user_dictionary_sql_table_prefix" : "user_dictionary",
   "screen_settings" :
   {
     "width" : 1280,
