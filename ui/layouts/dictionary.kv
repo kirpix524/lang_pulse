@@ -7,11 +7,21 @@
         anchor_y: 'top'
         padding: 20
 
-        Button:
-            text: 'Добавить слово'
+        BoxLayout:
             size_hint: None, None
-            size: 160, 40
-            on_press: root.add_word()
+            size: 340, 40
+            spacing: 10
+
+            Button:
+                text: 'Добавить слово'
+                size_hint: None, None
+                size: 160, 40
+                on_press: root.add_word()
+            Button:
+                text: 'Добавить из файла'
+                size_hint: None, None
+                size: 160, 40
+                on_press: root.add_words_from_file()
 
     AnchorLayout:
         anchor_x: 'center'

@@ -1,0 +1,26 @@
+<FileSelectionPopup>:
+    title: "Выберите файл"
+    size_hint: None, None
+    size: 600, 400
+    auto_dismiss: False
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 10
+
+        FileChooserListView:
+            id: filechooser
+            filters: ['*.*']
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            spacing: 10
+
+            Button:
+                text: "Отмена"
+                on_press: root.dismiss()
+            Button:
+                text: "Открыть"
+                on_press: root.finish_selection()
